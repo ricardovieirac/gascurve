@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0d10">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GasCurve">
+<meta name="description" content="GasCurve — simulador educacional de cinética de captação e distribuição dos anestésicos inalatórios.">
+<title>GasCurve — Inhaled Anesthetic Kinetics</title>
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GasCurve">
+<style>
+:root{
+  --bg:#0a0d10; --panel:#12171c; --panel2:#161c22; --grid:#1e2730; --border:#232c35;
+  --text:#e6edf3; --muted:#7c8a99; --accent:#4dd9c0;
+  --c-fi:#5b6b7a; --c-fa:#4dd9c0; --c-pa:#2fa89a; --c-vrg:#ffb454; --c-vis:#8fa0b0;
+  --c-mus:#b48cff; --c-fatv:#ff9f6b; --c-fat:#ff6b8b; --c-n2o:#9aa7b4;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+  font-size:15px;line-height:1.5;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:900px;margin:0 auto;padding:16px 14px 56px}
+h1{font-size:19px;font-weight:700;margin:0;letter-spacing:-.3px}
+h2{font-size:14px;font-weight:600;margin:0 0 10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+h3{font-size:15px;font-weight:600;margin:0 0 6px}
+p{margin:0 0 10px}
+.sub{color:var(--muted);font-size:12.5px;margin-top:5px}
+.badge{font-size:9.5px;background:var(--accent);color:var(--bg);border-radius:4px;padding:2px 7px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;vertical-align:middle}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
+.tabs{display:flex;gap:6px;margin:16px 0 14px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--panel);
+  color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tab.on{background:rgba(77,217,192,.13);border-color:var(--accent);color:var(--accent)}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.chip{padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--text);
+  font-size:13.5px;font-weight:600;cursor:pointer}
+.chip.on{border-color:currentColor;background:rgba(255,255,255,.06)}
+.sl{margin-bottom:13px}
+.sl:last-child{margin-bottom:0}
+.sl-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:8px}
+.sl-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.sl-v{font-size:13.5px;font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+input[type=range]{width:100%;height:26px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--grid)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--grid)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:var(--accent);margin-top:-8px;border:3px solid var(--bg);box-shadow:0 0 0 1px var(--accent)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--bg)}
+input[type=range]:disabled{opacity:.35}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}
+.ro{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:9px 11px}
+.ro-l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;line-height:1.3}
+.ro-v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:20px;font-weight:600;line-height:1.35;font-variant-numeric:tabular-nums}
+.ro-s{font-size:9.5px;color:var(--muted);line-height:1.3}
+.chartbox{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 6px 6px;margin-bottom:12px;touch-action:pan-y}
+.chart-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 8px 8px;flex-wrap:wrap}
+.seg{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{background:var(--panel2);border:0;color:var(--muted);font-size:11.5px;font-weight:600;padding:6px 11px;cursor:pointer;font-family:inherit}
+.seg button.on{background:rgba(77,217,192,.15);color:var(--accent)}
+.legend{display:flex;gap:11px;flex-wrap:wrap;padding:8px 10px 2px;font-size:11.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
+.legend i{width:13px;height:3px;border-radius:2px;display:inline-block}
+.legend .off{opacity:.35}
+.scn{border:1px solid var(--border);background:var(--panel2);border-radius:10px;padding:12px 13px;margin-bottom:9px;cursor:pointer}
+.scn.on{border-color:var(--accent);background:rgba(77,217,192,.07)}
+.scn h3{font-size:14.5px}
+.scn p{font-size:12.5px;color:var(--muted);margin:0}
+.teach{border-left:3px solid var(--accent);background:rgba(77,217,192,.06);border-radius:0 9px 9px 0;padding:11px 13px;font-size:13.5px;margin-bottom:12px}
+.teach b{color:var(--accent)}
+.teach ul{margin:7px 0 0;padding-left:19px}
+.teach li{margin-bottom:5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:right;padding:7px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.note{font-size:11.5px;color:var(--muted);line-height:1.6}
+.note a{color:var(--accent)}
+.warn{border:1px solid #4a3320;background:rgba(255,180,84,.07);border-radius:9px;padding:11px 13px;font-size:12.5px;color:#ffc98a}
+details{border-top:1px solid var(--border);padding-top:11px;margin-top:11px}
+summary{cursor:pointer;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸ ";color:var(--accent)}
+details[open] summary::before{content:"▾ "}
+details>div{padding-top:12px}
+.hide{display:none!important}
+.btn{padding:9px 15px;border-radius:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn.pri{background:rgba(77,217,192,.14);border-color:var(--accent);color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;justify-content:space-between">
+      <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
+      <h1>GasCurve <span style="font-weight:400;color:var(--muted);font-size:15px">· cinética dos anestésicos inalatórios</span></h1>
+      <span class="badge">v3</span>
+      </div>
+      <div class="seg" id="langSeg" style="flex:0 0 auto">
+        <button data-l="pt">PT</button><button data-l="en">EN</button>
+      </div>
+    </div>
+    <div class="sub">Modelo compartimental de 5 tecidos calibrado contra cinética <b>medida em humanos</b> (Yasuda/Eger 1991): cérebro, vísceras, músculo, gordura perivisceral e gordura periférica.
+      Com N₂O, efeito de concentração e do segundo gás, metabolismo hepático, débito cardíaco e shunt direita-esquerda.</div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-tab="sim">Simulador</button>
+    <button class="tab" data-tab="lf">Baixo fluxo</button>
+    <button class="tab" data-tab="scn">Cenários</button>
+    <button class="tab" data-tab="cmp">Comparar agentes</button>
+    <button class="tab" data-tab="ref">Referência</button>
+  </nav>
+
+  <!-- ================= SIMULADOR ================= -->
+  <section id="tab-sim">
+    <div id="teachBox"></div>
+
+    <div class="chips" id="agentChips"></div>
+
+    <div class="card">
+      <div class="sl"><div class="sl-h"><span class="sl-l">Fluxo de gás fresco (FGF)</span><span class="sl-v" id="v-fgf"></span></div>
+        <input type="range" id="s-fgf" min="0.3" max="10" step="0.1"></div>
+      <div class="sl"><div class="sl-h"><span class="sl-l" id="l-dial">Vaporizador</span><span class="sl-v" id="v-dial"></span></div>
+        <input type="range" id="s-dial" min="0" max="8" step="0.1"></div>
+      <div class="sl"><div class="sl-h"><span class="sl-l">Óxido nitroso (N₂O)</span><span class="sl-v" id="v-n2o"></span></div>
+        <input type="range" id="s-n2o" min="0" max="75" step="5"></div>
+      <div class="sl"><div class="sl-h"><span class="sl-l">Duração da simulação</span><span class="sl-v" id="v-dur"></span></div>
+        <input type="range" id="s-dur" min="10" max="360" step="5"></div>
+
+      <details id="advBox">
+        <summary>Paciente e ventilação</summary>
+        <div>
+          <div class="sl"><div class="sl-h"><span class="sl-l">Peso corporal</span><span class="sl-v" id="v-wt"></span></div>
+            <input type="range" id="s-wt" min="3" max="150" step="1"></div>
+          <div class="sl"><div class="sl-h"><span class="sl-l" id="l-age">Idade</span><span class="sl-v" id="v-age"></span></div>
+            <input type="range" id="s-age" min="0" max="100" step="1"></div>
+          <div class="sl"><div class="sl-h"><span class="sl-l">Débito cardíaco</span><span class="sl-v" id="v-co"></span></div>
+            <input type="range" id="s-co" min="0.4" max="2.5" step="0.05"></div>
+          <div class="sl"><div class="sl-h"><span class="sl-l">Ventilação alveolar</span><span class="sl-v" id="v-va"></span></div>
+            <input type="range" id="s-va" min="0.3" max="2.5" step="0.05"></div>
+          <div class="sl"><div class="sl-h"><span class="sl-l">Shunt direita → esquerda</span><span class="sl-v" id="v-sh"></span></div>
+            <input type="range" id="s-sh" min="0" max="50" step="1"></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="chartbox">
+      <div class="chart-hd">
+        <div class="seg" id="ymode">
+          <button data-y="pct" class="on">% concentração</button>
+          <button data-y="norm">F<sub>A</sub>/F<sub>I</sub></button>
+          <button data-y="mac">MAC</button>
+        </div>
+        <div class="sl-v" id="cursorLbl" style="color:var(--muted);font-size:11.5px"></div>
+      </div>
+      <div id="chart"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="grid" id="readouts" style="margin-bottom:12px"></div>
+    <div class="grid" id="taus"></div>
+  </section>
+
+  <!-- ================= BAIXO FLUXO ================= -->
+  <section id="tab-lf" class="hide">
+    <div class="teach" style="margin-bottom:12px">
+      <b>Duas anestesias, o mesmo vaporizador, fluxos diferentes.</b> Acompanhe cada compartimento
+      encher em tempo real. Repare no que acontece quando você <b>gira o dial</b> em baixo fluxo:
+      o circuito é grande e recebe pouco gás fresco, então o que o paciente inspira leva muitos
+      minutos para acompanhar o que você marcou no vaporizador.
+    </div>
+
+    <div class="card">
+      <div class="chips" id="lfAgent" style="margin-bottom:12px"></div>
+      <div class="chips" id="lfPreset" style="margin-bottom:14px"></div>
+      <div class="sl"><div class="sl-h"><span class="sl-l" id="lf-l-dial">Vaporizador (nos dois)</span><span class="sl-v" id="v-lfdial"></span></div>
+        <input type="range" id="s-lfdial" min="0" max="8" step="0.1"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="sl" style="margin:0"><div class="sl-h"><span class="sl-l" style="color:var(--c-fa)">FGF esquerda</span><span class="sl-v" id="v-lfA"></span></div>
+          <input type="range" id="s-lfA" min="0.25" max="10" step="0.05"></div>
+        <div class="sl" style="margin:0"><div class="sl-h"><span class="sl-l" style="color:var(--c-fatv)">FGF direita</span><span class="sl-v" id="v-lfB"></span></div>
+          <input type="range" id="s-lfB" min="0.25" max="10" step="0.05"></div>
+      </div>
+      <details id="lfPatientBox" style="margin-top:12px"><summary>Paciente e circuito</summary><div>
+        <div class="sl"><div class="sl-h"><span class="sl-l">Peso</span><span class="sl-v" id="v-lfwt"></span></div>
+          <input type="range" id="s-lfwt" min="3" max="120" step="1"></div>
+        <div class="sl"><div class="sl-h"><span class="sl-l" id="lf-l-age">Idade</span><span class="sl-v" id="v-lfage"></span></div>
+          <input type="range" id="s-lfage" min="0" max="100" step="1"></div>
+        <div class="sl"><div class="sl-h"><span class="sl-l">Volume do circuito</span><span class="sl-v" id="v-lfvc"></span></div>
+          <input type="range" id="s-lfvc" min="0.6" max="8" step="0.1"></div>
+        <div class="sl"><div class="sl-h"><span class="sl-l" id="lf-l-dur">Duração</span><span class="sl-v" id="v-lfdur"></span></div>
+          <input type="range" id="s-lfdur" min="10" max="120" step="5"></div>
+        <div class="sl-h" style="margin-top:6px"><span class="sl-l" id="lf-l-price">Preço do agente</span>
+          <span class="sl-v"><span id="lf-cur">R$</span>
+          <input type="number" id="lf-price" step="0.01" min="0"
+            style="width:74px;background:var(--panel2);border:1px solid var(--border);color:var(--text);
+                   border-radius:6px;padding:3px 6px;font-family:inherit;font-size:12.5px"> / mL</span></div>
+      </div></details>
+    </div>
+
+    <div class="card" style="padding:10px 8px">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div id="lfStage"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <button class="btn pri" id="lfPlay" style="min-width:104px">▶ Reproduzir</button>
+        <div class="sl-v" id="lfClock" style="font-size:17px">t = 0′</div>
+        <div class="seg" id="lfSpeed">
+          <button data-s="30">30×</button><button data-s="60" class="on">60×</button><button data-s="120">120×</button>
+        </div>
+      </div>
+      <input type="range" id="s-lft" min="0" max="1000" step="1" value="0" style="margin-top:12px">
+    </div>
+
+    <div class="grid" id="lfReadouts" style="margin-bottom:12px"></div>
+    <div id="lfInsight"></div>
+  </section>
+
+  <!-- ================= CENÁRIOS ================= -->
+  <section id="tab-scn" class="hide">
+    <div class="sub" style="margin-bottom:13px">Toque num cenário para carregá-lo no simulador com os eventos programados.</div>
+    <div id="scnList"></div>
+  </section>
+
+  <!-- ================= COMPARAR ================= -->
+  <section id="tab-cmp" class="hide">
+    <div class="card">
+      <div class="sl"><div class="sl-h"><span class="sl-l">FGF</span><span class="sl-v" id="v-cfgf"></span></div>
+        <input type="range" id="s-cfgf" min="0.3" max="10" step="0.1" value="8"></div>
+      <div class="sl"><div class="sl-h"><span class="sl-l">Duração</span><span class="sl-v" id="v-cdur"></span></div>
+        <input type="range" id="s-cdur" min="10" max="360" step="5" value="60"></div>
+      <div class="sl"><div class="sl-h"><span class="sl-l">Débito cardíaco</span><span class="sl-v" id="v-cco"></span></div>
+        <input type="range" id="s-cco" min="0.4" max="2.5" step="0.05" value="1"></div>
+    </div>
+    <div class="chartbox">
+      <div class="chart-hd">
+        <div class="seg" id="cmpmode">
+          <button data-c="fa" class="on">F<sub>A</sub>/F<sub>I</sub> alveolar</button>
+          <button data-c="vrg" >Cérebro</button>
+          <button data-c="wash">Washout</button>
+        </div>
+      </div>
+      <div id="chartCmp"></div>
+      <div class="legend" id="legendCmp"></div>
+    </div>
+    <div class="teach" id="cmpTeach"></div>
+  </section>
+
+  <!-- ================= REFERÊNCIA ================= -->
+  <section id="tab-ref" class="hide">
+    <div class="card">
+      <h2 data-i18n="rH1">Coeficientes de partição a 37 °C</h2>
+      <div class="tblwrap"><table id="refTable"></table></div>
+      <p class="note" style="margin-top:11px" data-i18n="rP1"></p>
+      <div class="warn" style="margin-top:11px" data-i18n="rP2"></div>
+      <p class="note" style="margin-top:11px" data-i18n="rP3"></p>
+      <p class="note" style="margin-top:11px" data-i18n="rP4"></p>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="rH2">MAC por idade (% de 1 atm)</h2>
+      <div class="tblwrap"><table id="macAgeTable"></table></div>
+      <p class="note" style="margin-top:11px" data-i18n="rP5"></p>
+      <p class="note" style="margin-top:11px" data-i18n="rP6"></p>
+      <div class="warn" style="margin-top:11px" data-i18n="rP7"></div>
+      <p class="note" style="margin-top:11px" data-i18n="rP8"></p>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="rH3">Fisiologia do modelo (70 kg)</h2>
+      <div class="tblwrap"><table id="physTable"></table></div>
+      <p class="note" style="margin-top:11px" data-i18n="rP9"></p>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="rH4">Equações do motor</h2>
+      <p class="note" data-i18n="rP10"></p>
+      <div class="note" style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:var(--panel2);
+           border:1px solid var(--border);border-radius:9px;padding:12px;overflow-x:auto;white-space:pre;line-height:1.9;color:var(--text)">
+V̇<sub>cap,g</sub> = Q·(1−s)·λ<sub>b/g</sub>·(P<sub>A,g</sub> − P<sub>v̄,g</sub>)
+
+FRC · dP<sub>A,g</sub>/dt = V̇<sub>A</sub>·P<sub>I,g</sub> − (V̇<sub>A</sub> − ΣV̇<sub>cap</sub>)·P<sub>A,g</sub> − V̇<sub>cap,g</sub>
+
+V<sub>circ</sub> · dP<sub>I,g</sub>/dt = FGF·P<sub>dial,g</sub> + V̇<sub>exp</sub>·P<sub>A,g</sub> − (V̇<sub>A</sub>+spill)·P<sub>I,g</sub>
+
+dP<sub>t,g</sub>/dt = Q<sub>t</sub>·(P<sub>a,g</sub> − P<sub>t,g</sub>) / (V<sub>t</sub>·λ<sub>t/b</sub>)
+
+P<sub>a,g</sub> = (1−s)·P<sub>A,g</sub> + s·P<sub>v̄,g</sub>          P<sub>v̄,g</sub> = ΣQ<sub>t</sub>P<sub>t,g</sub> / ΣQ<sub>t</sub>
+      </div>
+      <p class="note" style="margin-top:11px" data-i18n="rP11"></p>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="rH5">Validação numérica</h2>
+      <div class="tblwrap"><table id="valTable"></table></div>
+      <p class="note" style="margin-top:11px" data-i18n="rP12"></p>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="rH6">Constantes de tempo — calibradas contra humanos</h2>
+      <p class="note" data-i18n="rP13"></p>
+      <div class="tblwrap" style="margin-top:9px"><table>
+        <thead><tr><th data-i18n="rTc">Compartimento</th><th data-i18n="rTdm">Des medido</th><th data-i18n="rTs">simul.</th>
+          <th data-i18n="rTim">Iso medido</th><th data-i18n="rTs2">simul.</th><th data-i18n="rThm">Halo medido</th><th data-i18n="rTs3">simul.</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--text);font-weight:600" data-i18n="rVrg">VRG agregado</td><td>4,2 ± 1,6</td><td>4,4</td><td>6,3 ± 2,8</td><td>5,8</td><td>6,3 ± 1,7</td><td>6,6</td></tr>
+          <tr><td style="color:var(--text);font-weight:600" data-i18n="muscle">Músculo</td><td>38 ± 10</td><td>39</td><td>63 ± 22</td><td>57</td><td>61 ± 12</td><td>66</td></tr>
+          <tr><td style="color:var(--text);font-weight:600" data-i18n="fatV">Gordura perivisceral</td><td>273 ± 88</td><td>262</td><td>435 ± 131</td><td>432</td><td>471 ± 102</td><td>491</td></tr>
+          <tr><td style="color:var(--text);font-weight:600" data-i18n="fatP">Gordura periférica</td><td>1340 ± 230</td><td>1306</td><td>2090 ± 230</td><td>2155</td><td>2480 ± 440</td><td>2453</td></tr>
+        </tbody></table></div>
+      <p class="note" style="margin-top:11px" data-i18n="rP14"></p>
+      <p class="note" style="margin-top:9px" data-i18n="rP15"></p>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="rH7">Confronto com dado medido em humanos</h2>
+      <p class="note" data-i18n="rP16"></p>
+      <div class="tblwrap" style="margin-top:9px"><table>
+        <thead><tr><th data-i18n="rTag">Agente</th><th data-i18n="rT30m">F<sub>A</sub>/F<sub>I</sub> 30 min<br>medido</th><th data-i18n="rTsim">simulador</th>
+          <th data-i18n="rTel">eliminação 5 min<br>medido</th><th data-i18n="rTsim2">simulador</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--text);font-weight:600" data-i18n="agDes">Desflurano</td><td>0,90 ± 0,01</td><td style="color:#ffc98a">0,95</td><td>0,14 ± 0,02</td><td>0,13</td></tr>
+          <tr><td style="color:var(--text);font-weight:600" data-i18n="agIso">Isoflurano</td><td>0,73 ± 0,03</td><td>0,73</td><td>0,22 ± 0,02</td><td style="color:#ffc98a">0,30</td></tr>
+          <tr><td style="color:var(--text);font-weight:600" data-i18n="agHal">Halotano</td><td>0,58 ± 0,04</td><td>0,58</td><td>0,25 ± 0,02</td><td style="color:#ffc98a">0,38</td></tr>
+        </tbody></table></div>
+      <p class="note" style="margin-top:11px" data-i18n="rP17"></p>
+      <ul class="note" style="padding-left:19px;margin:7px 0 0">
+        <li data-i18n="rL1"></li>
+        <li data-i18n="rL2"></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="rH8">Limitações conhecidas</h2>
+      <ul class="note" style="padding-left:19px;margin:0">
+        <li data-i18n="rM1"></li><li data-i18n="rM2"></li><li data-i18n="rM3"></li>
+        <li data-i18n="rM4"></li><li data-i18n="rM5"></li><li data-i18n="rM6"></li>
+        <li data-i18n="rM7"></li><li data-i18n="rM8"></li><li data-i18n="rM9"></li>
+      </ul>
+    </div>
+
+    <div class="warn" data-i18n="rDisc"></div>
+  </section>
+
+  <p class="note" style="border-top:1px solid var(--border);padding-top:14px;margin-top:20px">
+    <b>GasCurve</b> — simulador educacional aberto de cinética dos anestésicos inalatórios, multiplataforma e de código aberto. Funciona offline; no celular use “Adicionar à Tela de Início”.
+  </p>
+</div>
+
+<script>
+"use strict";
+/* =========================================================================
+   0. IDIOMA E MOEDA — detecta na primeira abertura, lembra a escolha
+   ========================================================================= */
+const I18N={
+ pt:{cur:"R$",curRate:5.5,
+  tagline:"cinética dos anestésicos inalatórios",
+  sub:"Modelo compartimental de 5 tecidos calibrado contra cinética <b>medida em humanos</b> (Yasuda/Eger 1991): cérebro, vísceras, músculo, gordura perivisceral e gordura periférica. Com N₂O, efeito de concentração e do segundo gás, metabolismo hepático, débito cardíaco e shunt direita-esquerda.",
+  tSim:"Simulador",tLf:"Baixo fluxo",tScn:"Cenários",tCmp:"Comparar agentes",tRef:"Referência",
+  fgf:"Fluxo de gás fresco (FGF)",vap:"Vaporizador",n2o:"Óxido nitroso (N₂O)",dur:"Duração da simulação",
+  off:"desligado",patient:"Paciente e ventilação",weight:"Peso corporal",co:"Débito cardíaco",
+  va:"Ventilação alveolar",shunt:"Shunt direita → esquerda",
+  yPct:"% concentração",yNorm:"F<sub>A</sub>/F<sub>I</sub>",yMac:"MAC",
+  circuit:"Fᵢ circuito",alv:"F_A alveolar",art:"P_a arterial",brain:"Cérebro",visc:"Vísceras",
+  muscle:"Músculo",fatV:"Gordura perivisceral",fatP:"Gordura periférica",n2oAlv:"N₂O alveolar",
+  macTot:"MAC cerebral total",uptake:"Captação",consumo:"Consumo",metab:"Metabolizado",
+  awake:"Despertar previsto",afterOff:"após desligar o vaporizador",beyond:"além da simulação",
+  agentOnly:"só o agente",agentN2o:"agente + N₂O",vaporBlood:"vapor para o sangue",
+  liquidCum:"agente líquido acumulado",viaLiver:"do captado · via hepática",
+  macOfAgent:"MAC do agente",ofFA:"da F_A",
+  hBG:"sangue/gás",hBr:"cérebro/sg",hMu:"músculo/sg",hFa:"gordura/sg",hVap:"P. vapor (mmHg)",
+  hVol:"Volume",hCO:"% do débito",hPerf:"Perfusão",hAlvFRC:"Alvéolo (CRF)",
+  cW1:"Washout comparado.",cW2:"Todos os agentes rodam a ~1 MAC por",
+  cW3:"e então o dial vai a zero com FGF 8 L/min. Agente cerebral restante ao fim, do <b>mais lento ao mais rápido</b>:",
+  cW4:"A ordem acompanha a solubilidade — quanto maior o λ<sub>sangue/gás</sub> e o λ<sub>gordura</sub>, maior a cauda de despertar. Aumente a <b>duração</b> e a diferença cresce, porque a gordura teve mais tempo de carregar.",
+  cS1:"Ordem da solubilidade",cS2:"Aos",cS3:", do mais rápido ao mais lento:",
+  cS4:"É exatamente a ordem inversa do λ<sub>sangue/gás</sub>",
+  cS5:"Aumente o <b>débito cardíaco</b>: as curvas dos agentes solúveis afundam muito mais que as dos insolúveis.",
+  cYw:"fração do dial no cérebro",
+  agSevo:"Sevoflurano",agN2o:"Óxido nitroso",
+  // ---- aba Referência ----
+  rH1:"Coeficientes de partição a 37 °C",
+  rP1:"λ<sub>tecido/sangue</sub> segundo Yasuda &amp; Eger (<i>Anesth Analg</i> 1989;69:370–3 — solubilidade em tecidos humanos). λ<sub>sangue/gás</sub>, MAC, MAC-awake e pressão de vapor conforme <b>Miller's Anesthesia (2025), Tabela 18.1</b>.",
+  rP2:"<b>Correções aplicadas:</b> na v1 os λ cérebro/sangue de sevoflurano e isoflurano estavam invertidos — os valores corretos de Yasuda 1989 são sevo 1,57 e iso 1,70. Na v2, conferidos contra o Miller: MAC do isoflurano 1,15 → <b>1,28</b> · MAC do sevoflurano 2,0 → <b>2,05</b> · λ<sub>sangue/gás</sub> do desflurano 0,42 → <b>0,45</b> · do halotano 2,40 → <b>2,50</b>.",
+  rP3:"<b>MAC-awake</b> é a concentração em que metade das pessoas volta a responder a comando — o limiar prático do despertar, tipicamente ⅓ da MAC. No modo <b>MAC</b> do gráfico ele aparece como linha tracejada, e os indicadores estimam quando a concentração cerebral cruza esse limiar.",
+  rP4:"Séries clínicas mais recentes encontram λ<sub>sangue/gás</sub> discretamente diferentes em pacientes reais (iso 1,27; sevo 0,62; des 0,49 — <i>Anesth Analg</i> 2014), variando com hematócrito e lipemia.",
+  rH2:"MAC por idade (% de 1 atm)",
+  rP5:"A MAC não é propriedade só do agente, e o padrão etário <b>não é o mesmo em todos</b>. Halotano, isoflurano e desflurano sobem do neonato até um pico no lactente — 1–6 meses nos dois primeiros, 6–12 meses no desflurano — e caem daí por diante. O <b>sevoflurano é a exceção</b>: é máximo no neonato (3,3%) e só decresce, o que é uma das razões de ele ser o agente pediátrico de escolha. Em todos, um valor fixo de adulto superestima a profundidade justamente no lactente, onde o erro custa mais. O simulador usa a MAC da idade marcada no controle <b>Idade</b>, e a MAC-awake acompanha mantendo a razão do adulto.",
+  rP6:"<b>Fontes dos pontos medidos:</b> sevoflurano — Lerman J e cols., <i>Anesthesiology</i> 1994;80:814–24 · desflurano — Taylor RH, Lerman J, <i>Anesthesiology</i> 1991;75:975–9 · isoflurano — LeDez KM, Lerman J, <i>Anesthesiology</i> 1987;67:301–7 (pré-termo) e a série pediátrica clássica · halotano — Lerman J e cols., <i>Anesthesiology</i> 1983;59:421–4. Acima dos 40 anos aplica-se o decaimento de <b>Mapleson WW</b>, <i>Br J Anaesth</i> 1996;76:179–85: MAC(idade) = MAC<sub>40</sub> · 10<sup>−0,00269·(idade−40)</sup>.",
+  rP7:"<b>Tensão assumida na âncora adulta.</b> Usamos como MAC<sub>40</sub> o valor da Tabela 18.1 do Miller, que já estava no app (sevo 2,05 · iso 1,28 · des 6,0 · halo 0,75). A meta-análise de Mapleson, de onde vem a fórmula do decaimento, chega a MAC<sub>40</sub> um pouco diferentes (sevo 1,8 · iso 1,17 · des 6,6). Ou seja: no extremo adulto a nossa curva fica <b>discretamente alta para sevo e iso e baixa para des</b>. Mantivemos o Miller por coerência com o resto do app, mas quem comparar com uma carta iso-MAC vai achar essa diferença — e ela é real, não erro de conta.",
+  rP8:"<b>O N₂O não é corrigido</b> — não há dado pediátrico utilizável, e os 104% seguem valendo em todas as idades. Também não corrigimos MAC por temperatura, opioides ou outros adjuvantes.",
+  rH3:"Fisiologia do modelo (70 kg)",
+  rP9:"Volumes escalam linearmente com o peso; fluxos (débito cardíaco e ventilação alveolar) escalam de forma alométrica (peso<sup>0,75</sup>). τ = V<sub>tecido</sub> × λ<sub>tecido/sangue</sub> / Q<sub>tecido</sub>.",
+  rH4:"Equações do motor",
+  rP10:"Todas as concentrações são pressões parciais expressas em % de 1 atm.",
+  rP11:"O termo <b>−(V̇<sub>A</sub> − ΣV̇<sub>cap</sub>)·P<sub>A</sub></b> é o que gera espontaneamente o <b>efeito de concentração</b> e o <b>efeito do segundo gás</b>: o volume captado pelo sangue não é expirado, de modo que o gás restante no alvéolo fica concentrado e o volume perdido é reposto por gás inspirado. Não há nenhuma correção artificial no código.",
+  rH5:"Validação numérica",
+  rP12:"Valores de F<sub>A</sub>/F<sub>I</sub> gerados pelo próprio motor, comparados às curvas clássicas de Eger. A ordem e as magnitudes reproduzem a literatura.",
+  rH6:"Constantes de tempo — calibradas contra humanos",
+  rP13:"Yasuda, Lockhart, Eger e cols., <i>Anesthesiology</i> 1991;74:489–98, Tabela 4. Oito voluntários, cinética medida por 5 a 7 dias. <b>São as constantes de tempo que o motor tem que reproduzir</b> — e reproduz, para os três agentes, dentro de 1 desvio-padrão.",
+  rP14:"Valores em minutos. <b>A gordura é dois compartimentos, não um</b> — a perivisceral equilibra em horas, a periférica em dias. Modelos que espremem as duas numa só (incluindo o Gasman e as tabelas de livro-texto) não conseguem acertar as duas fases da cauda de despertar ao mesmo tempo.",
+  rP15:"O <b>cérebro</b> é modelado à parte do resto do grupo rico em vasos (1,4 L a 14% do débito, τ ≈ 3 min): o VRG agregado do estudo inclui fígado, rim e vísceras, e é mais lento que o cérebro. É o cérebro que determina a profundidade anestésica.",
+  rH7:"Confronto com dado medido em humanos",
+  rP16:"Yasuda, Lockhart, Eger e cols., <i>Anesthesiology</i> 1991;74:489–98 — oito voluntários, N₂O 65% de fundo, agente potente por 30 min, medição direta de F<sub>A</sub>/F<sub>I</sub> e da eliminação. <b>Não é modelo contra modelo: é modelo contra gente.</b>",
+  rP17:"A captação de isoflurano e halotano bate com o medido. Duas discrepâncias reais persistem e <b>são limitações de estrutura do modelo, não erro de parâmetro</b>:",
+  rL1:"<b>Desflurano sobe rápido demais</b> (0,95 contra 0,90 medido). Pulmão real tem heterogeneidade ventilação/perfusão, que penaliza justamente os agentes pouco solúveis. Nosso alvéolo é um compartimento único e perfeito.",
+  rL2:"<b>Halotano é eliminado devagar demais</b> (0,38 contra 0,25 medido). Cerca de 20% do halotano é metabolizado, e o modelo metaboliza menos do que isso durante a captação. O mesmo vale, em menor grau, para o isoflurano.",
+  rH8:"Limitações conhecidas",
+  rM1:"<b>Não modela heterogeneidade V/Q</b> — superestima a F<sub>A</sub>/F<sub>I</sub> dos agentes pouco solúveis (ver acima).",
+  rM2:"Não modela difusão entre tecidos adjacentes (a gordura recebe agente também por difusão do músculo vizinho, não só pelo sangue).",
+  rM3:"O metabolismo é uma perda de 1ª ordem a partir do compartimento visceral — não modela saturação enzimática, indução, nem os metabólitos.",
+  rM4:"Os compartimentos viscerais estão agregados — não separa fígado, rim e coração.",
+  rM5:"Não modela perda percutânea, difusão para cavidades aéreas nem hipóxia por difusão no despertar com N₂O.",
+  rM6:"Não modela absorção pela cal sodada, complacência do circuito nem espaço morto variável.",
+  rM7:"Composição corporal escala por peso; não ajusta fração de gordura por idade, sexo ou obesidade.",
+  rM8:"A MAC é corrigida por idade, mas não por temperatura, opioides ou outros adjuvantes; o N₂O não recebe correção etária.",
+  rM9:"Vaporizadores são tratados como ideais (saída = valor do dial, independente de FGF e temperatura).",
+  rDisc:"<b>Uso educacional.</b> Modelo simplificado, não validado clinicamente. Não deve ser usado para orientar condutas em pacientes reais.",
+  rTc:"Compartimento",rTdm:"Des medido",rTs:"simul.",rTim:"Iso medido",rTs2:"simul.",rThm:"Halo medido",rTs3:"simul.",
+  rVrg:"VRG agregado",rTag:"Agente",rT30m:"F<sub>A</sub>/F<sub>I</sub> 30 min<br>medido",rTsim:"simulador",
+  rTel:"eliminação 5 min<br>medido",rTsim2:"simulador",
+  agDes:"Desflurano",agIso:"Isoflurano",agHal:"Halotano",
+  age:"Idade",ageNeo:"neonato",ageMonth:"mês",ageMonths:"meses",ageYear:"ano",ageYears:"anos",
+  yAtm:"% de 1 atm",yFrac:"fração do gás inspirado",yMacMult:"múltiplos de MAC",
+  n2oAxis:"N₂O alveolar (eixo direito)",macAlv:"MAC alveolar",macBrainL:"MAC cerebral",
+  hl1mac:"1 MAC — imobilidade",hlAwake:"MAC-awake — limiar de despertar",
+  macAgeNow:"MAC nesta idade",macAdult:"adulto",
+  end:"fim",freeMode:"Voltar ao modo livre",program:"Programação",
+  // baixo fluxo
+  lfIntro:"<b>Duas anestesias, o mesmo vaporizador, fluxos diferentes.</b> Abaixo da ventilação minuto, o circuito circular é um <b>sistema de reinalação controlada</b>: o que o paciente inspira é uma mistura de gás fresco com gás exalado já parcialmente equilibrado com ele. A constante de tempo do sistema é <b>volume de reserva ÷ FGF</b> — e são precisas <b>três</b> para 95% de mudança de composição. É daí que decorre tudo o que se vê nesta tela, inclusive o fato de o dial deixar de ser a variável de interesse.",
+  lfDial:"Vaporizador (nos dois)",lfLeft:"FGF esquerda",lfRight:"FGF direita",
+  lfPatient:"Paciente e circuito",lfVc:"Volume do circuito",
+  lfPlay:"▶ Reproduzir",lfPause:"❚❚ Pausar",
+  lfNeo:"Neonato 3 kg",lfInf:"Lactente 10 kg",lfChild:"Criança 25 kg",lfAdult:"Adulto 70 kg",
+  lfFresh:"gás fresco",lfVent:"ventilação",lfUp:"captação",lfReb:"Reinalação",lfMac:"MAC cerebral",
+  lfCkt:"CIRCUITO",lfAlv:"ALVÉOLO",lfArt:"ARTERIAL",lfBrain:"CÉREBRO",lfMus:"MÚSCULO",lfFat:"GORDURA",
+  lfVisc:"VÍSCERAS",lfFatV:"GORD PERIVISC",lfFatP:"GORD PERIF",lfVen:"VENOSO",lfWaste:"descarte",
+  lfCost:"Custo do agente",lfPerH:"por hora",lfSaving:"economia",
+  lfDiffFi:"Fᵢ — diferença",lfDiffBrain:"Cérebro — diferença",lfWhatEach:"o que cada um inspira",
+  lfMacDiff:"MAC de diferença",lfPrice:"Preço do agente",
+  lfAuth:"<b>Autoridade do vaporizador.</b> Para o gás inspirado chegar a 80% do que está marcado no dial, o circuito de",
+  lfTakes:"leva",lfAndThe:"e o de",
+  lfTauIs:"A constante de tempo é <b>volume de reserva ÷ FGF</b>, e o volume de reserva é o circuito mais a CRF do paciente —",
+  lfPlusFrc:"+",lf95needs:"e 95% da nova composição pedem",lfOnTheRight:"à direita",
+  lfProtoTitle:"Protocolo de baixo fluxo pediátrico — as quatro fases",
+  lfGives:"isso dá",lfVs:"contra",lfBrainMac:"<b>No cérebro:</b> 1 MAC é atingida em",
+  lfLeftS:"à esquerda e",lfRightS:"à direita — é aqui que a diferença vira conduta.",
+  lfNotReached:"não atingida",lfBeyondSim:"mais que a simulação",
+  lfPed:"<b>Na criança, a inércia do circuito trabalha a favor.</b> O volume de reserva — traqueias, balão, ventilador, absorvedor e a CRF do paciente — é de 9–10 L no adulto e de cerca de 3 L na criança pequena. A 4 L/min um sistema de 3 L tem constante de tempo abaixo de um minuto, e o que se muda no fluxômetro ou no vaporizador aparece na via aérea quase de imediato; a 0,5 L/min a constante vai para ~6 min e são precisos uns 20 min para 95% da nova composição. Some-se a isso a razão CRF/V̇<sub>A</sub>, de ~1:5 no lactente contra 1:1,5 no adulto: o cérebro acompanha o alvéolo quase sem atraso. O baixo fluxo é seguro na criança — o que muda é que o erro de dosagem, nos dois sentidos, aparece mais rápido.",
+  lfDialDiv:"<b>O dial não é a dose.</b> Como a fração inspirada é uma média entre gás fresco e gás reinalado, manter 2% expirado pede um dial pouco acima de 2% a 2 L/min, da ordem de <b>3,5% a 0,5 L/min</b> e de 4–5% num wash-in já em baixo fluxo. A regra de bancada que decorre disso: quando a fração expirada do agente não sobe, a resposta quase sempre é <b>abrir o fluxo</b>, não avançar o vaporizador.",
+  lfMacAge:"<b>MAC muda com a idade — e aqui ela é corrigida.</b> A MAC do sevoflurano em O₂ é 3,3 ± 0,2% no neonato a termo e 3,2 ± 0,1% no lactente de 1–6 meses, caindo para ~2,5% dos 6 meses em diante e para o valor do adulto na idade adulta. O simulador usa a MAC <b>da idade que você marcou</b>, não a do adulto — por isso um lactente mantido em 2% expirado aparece bem abaixo de 1 MAC. Em baixo fluxo esse déficit se soma à divergência entre dial e expirado.",
+  lfFloor:"<b>O piso do fluxo é da máquina, não do paciente.</b> O FGF precisa repor, no mínimo, o consumo metabólico de O₂ (≈6 mL·kg⁻¹·min⁻¹), a amostra do analisador de gases que não retorna ao circuito (150–200 mL/min) e o vazamento pela via aérea. Numa criança de 10 kg isso é ~60 mL/min de O₂ contra até 200 mL/min só de amostragem — a arquitetura de amostragem e o tubo com cuff pesam mais que o peso da criança. Um vazamento de 100 mL/min em tubo sem cuff sozinho já excede a captação metabólica.",
+  lfProto:"<b>A sequência em quatro fases.</b> ① <b>Wash-in</b> a 4–6 L/min por 1–3 min — na criança, não os 5–10 min recomendados no adulto, porque o volume de reserva é menor. ② <b>Transição escalonada</b>, p. ex. 4 → 1,5 → 0,5 L/min ao longo de 5–10 min, subindo o dial a cada degrau. ③ <b>Manutenção</b> com FiO₂ ≥ 0,30, EtCO₂ 30–40 mmHg e fração expirada do agente titulada por MAC ajustada à idade. ④ <b>Emergência</b> com FGF ≥ 4 L/min nos últimos 3–5 min. A economia já foi feita na fase ③; o alto fluxo do fim é custo deliberado e limitado no tempo.",
+  lfDefaults:"<b>Pontos de partida por peso:</b> ≤ 1 L/min acima de ~10 kg e ~0,5 L/min acima de ~20 kg, em estação de trabalho capaz. São síntese pragmática, não limiares validados — nenhum estudo pediátrico estratificou FGF por peso. Ficam deliberadamente acima do piso técnico: entre um e outro estão a margem para um vazamento que muda no meio do caso e a inércia do circuito. Abaixo de 10 kg o que falta é dado publicado, não viabilidade técnica.",
+  lfSrc:"Números desta aba: Carlos RV, von Ungern-Sternberg BS. <i>Low-flow, minimal-flow and metabolic-flow anaesthesia on the modern paediatric workstation</i> (em preparação) e as fontes primárias ali citadas.",
+  min:"min",hour:"h",day:"d",
+ },
+ en:{cur:"US$",curRate:1,
+  tagline:"inhaled anesthetic kinetics",
+  sub:"Five-tissue compartmental model calibrated against kinetics <b>measured in humans</b> (Yasuda/Eger 1991): brain, viscera, muscle, perivisceral fat and peripheral fat. With N₂O, concentration and second-gas effects, hepatic metabolism, cardiac output and right-to-left shunt.",
+  tSim:"Simulator",tLf:"Low flow",tScn:"Scenarios",tCmp:"Compare agents",tRef:"Reference",
+  fgf:"Fresh gas flow (FGF)",vap:"Vaporizer",n2o:"Nitrous oxide (N₂O)",dur:"Simulation length",
+  off:"off",patient:"Patient and ventilation",weight:"Body weight",co:"Cardiac output",
+  va:"Alveolar ventilation",shunt:"Right → left shunt",
+  yPct:"% concentration",yNorm:"F<sub>A</sub>/F<sub>I</sub>",yMac:"MAC",
+  circuit:"Fᵢ circuit",alv:"F_A alveolar",art:"P_a arterial",brain:"Brain",visc:"Viscera",
+  muscle:"Muscle",fatV:"Perivisceral fat",fatP:"Peripheral fat",n2oAlv:"N₂O alveolar",
+  macTot:"Total brain MAC",uptake:"Uptake",consumo:"Consumption",metab:"Metabolized",
+  awake:"Predicted awakening",afterOff:"after turning the vaporizer off",beyond:"beyond the simulation",
+  agentOnly:"agent only",agentN2o:"agent + N₂O",vaporBlood:"vapor into blood",
+  liquidCum:"cumulative liquid agent",viaLiver:"of uptake · hepatic route",
+  macOfAgent:"MAC of the agent",ofFA:"of F_A",
+  hBG:"blood/gas",hBr:"brain/bl",hMu:"muscle/bl",hFa:"fat/bl",hVap:"Vapour press. (mmHg)",
+  hVol:"Volume",hCO:"% of output",hPerf:"Perfusion",hAlvFRC:"Alveolus (FRC)",
+  cW1:"Washout compared.",cW2:"Every agent runs at ~1 MAC for",
+  cW3:"and then the dial goes to zero with FGF 8 L/min. Agent remaining in the brain at the end, from <b>slowest to fastest</b>:",
+  cW4:"The order follows solubility — the larger the λ<sub>blood/gas</sub> and λ<sub>fat</sub>, the longer the emergence tail. Increase the <b>duration</b> and the difference grows, because the fat has had more time to load.",
+  cS1:"Order of solubility",cS2:"At",cS3:", from fastest to slowest:",
+  cS4:"This is exactly the inverse order of λ<sub>blood/gas</sub>",
+  cS5:"Increase <b>cardiac output</b>: the curves of soluble agents sag far more than those of insoluble ones.",
+  cYw:"fraction of the dial in the brain",
+  agSevo:"Sevoflurane",agN2o:"Nitrous oxide",
+  // ---- Reference tab ----
+  rH1:"Partition coefficients at 37 °C",
+  rP1:"λ<sub>tissue/blood</sub> from Yasuda &amp; Eger (<i>Anesth Analg</i> 1989;69:370–3 — solubility in human tissues). λ<sub>blood/gas</sub>, MAC, MAC-awake and vapour pressure from <b>Miller's Anesthesia (2025), Table 18.1</b>.",
+  rP2:"<b>Corrections applied:</b> in v1 the brain/blood λ of sevoflurane and isoflurane were inverted — the correct Yasuda 1989 values are sevo 1.57 and iso 1.70. In v2, checked against Miller: isoflurane MAC 1.15 → <b>1.28</b> · sevoflurane MAC 2.0 → <b>2.05</b> · desflurane λ<sub>blood/gas</sub> 0.42 → <b>0.45</b> · halothane 2.40 → <b>2.50</b>.",
+  rP3:"<b>MAC-awake</b> is the concentration at which half of people resume responding to command — the practical threshold of awakening, typically ⅓ of MAC. In the chart's <b>MAC</b> mode it appears as a dashed line, and the readouts estimate when the brain concentration crosses it.",
+  rP4:"More recent clinical series find slightly different λ<sub>blood/gas</sub> in real patients (iso 1.27; sevo 0.62; des 0.49 — <i>Anesth Analg</i> 2014), varying with haematocrit and lipaemia.",
+  rH2:"MAC by age (% of 1 atm)",
+  rP5:"MAC is not a property of the agent alone, and the age pattern <b>is not the same for all of them</b>. Halothane, isoflurane and desflurane rise from the neonate to a peak in infancy — 1–6 months for the first two, 6–12 months for desflurane — and fall thereafter. <b>Sevoflurane is the exception</b>: it is highest in the neonate (3.3%) and only declines, which is one of the reasons it is the paediatric agent of choice. In all of them a fixed adult value overestimates depth precisely in the infant, where the error costs most. The simulator uses the MAC for the age set in the <b>Age</b> control, and MAC-awake follows, preserving the adult ratio.",
+  rP6:"<b>Sources of the measured points:</b> sevoflurane — Lerman J et al., <i>Anesthesiology</i> 1994;80:814–24 · desflurane — Taylor RH, Lerman J, <i>Anesthesiology</i> 1991;75:975–9 · isoflurane — LeDez KM, Lerman J, <i>Anesthesiology</i> 1987;67:301–7 (preterm) and the classic paediatric series · halothane — Lerman J et al., <i>Anesthesiology</i> 1983;59:421–4. Above 40 years the decline of <b>Mapleson WW</b>, <i>Br J Anaesth</i> 1996;76:179–85 applies: MAC(age) = MAC<sub>40</sub> · 10<sup>−0.00269·(age−40)</sup>.",
+  rP7:"<b>An acknowledged tension at the adult anchor.</b> We use as MAC<sub>40</sub> the value from Miller's Table 18.1 already in the app (sevo 2.05 · iso 1.28 · des 6.0 · halo 0.75). Mapleson's meta-analysis, the source of the decline formula, arrives at somewhat different MAC<sub>40</sub> values (sevo 1.8 · iso 1.17 · des 6.6). So at the adult end our curve sits <b>slightly high for sevo and iso and low for des</b>. We kept Miller for consistency with the rest of the app, but anyone comparing against an iso-MAC chart will find that difference — and it is real, not an arithmetic error.",
+  rP8:"<b>N₂O is not age-corrected</b> — no usable paediatric data exist, and 104% is applied at every age. We also do not correct MAC for temperature, opioids or other adjuvants.",
+  rH3:"Model physiology (70 kg)",
+  rP9:"Volumes scale linearly with weight; flows (cardiac output and alveolar ventilation) scale allometrically (weight<sup>0.75</sup>). τ = V<sub>tissue</sub> × λ<sub>tissue/blood</sub> / Q<sub>tissue</sub>.",
+  rH4:"Engine equations",
+  rP10:"All concentrations are partial pressures expressed as % of 1 atm.",
+  rP11:"The term <b>−(V̇<sub>A</sub> − ΣV̇<sub>cap</sub>)·P<sub>A</sub></b> is what spontaneously generates the <b>concentration effect</b> and the <b>second gas effect</b>: the volume taken up by blood is not exhaled, so the gas remaining in the alveolus becomes concentrated and the lost volume is replaced by inspired gas. There is no artificial correction anywhere in the code.",
+  rH5:"Numerical validation",
+  rP12:"F<sub>A</sub>/F<sub>I</sub> values generated by the engine itself, compared with the classic Eger curves. The order and the magnitudes reproduce the literature.",
+  rH6:"Time constants — calibrated against humans",
+  rP13:"Yasuda, Lockhart, Eger et al., <i>Anesthesiology</i> 1991;74:489–98, Table 4. Eight volunteers, kinetics measured over 5 to 7 days. <b>These are the time constants the engine has to reproduce</b> — and it does, for all three agents, within 1 standard deviation.",
+  rP14:"Values in minutes. <b>Fat is two compartments, not one</b> — the perivisceral equilibrates over hours, the peripheral over days. Models that squeeze both into one (including Gas Man and the textbook tables) cannot match both phases of the emergence tail at once.",
+  rP15:"The <b>brain</b> is modelled separately from the rest of the vessel-rich group (1.4 L at 14% of cardiac output, τ ≈ 3 min): the aggregated VRG of the study includes liver, kidney and viscera, and is slower than the brain. It is the brain that determines anaesthetic depth.",
+  rH7:"Against data measured in humans",
+  rP16:"Yasuda, Lockhart, Eger et al., <i>Anesthesiology</i> 1991;74:489–98 — eight volunteers, background N₂O 65%, potent agent for 30 min, with direct measurement of F<sub>A</sub>/F<sub>I</sub> and of elimination. <b>This is not model against model: it is model against people.</b>",
+  rP17:"Isoflurane and halothane uptake match the measured values. Two real discrepancies persist, and <b>they are structural limitations of the model, not parameter error</b>:",
+  rL1:"<b>Desflurane rises too fast</b> (0.95 against 0.90 measured). A real lung has ventilation/perfusion heterogeneity, which penalises precisely the poorly soluble agents. Our alveolus is a single, perfectly homogeneous compartment.",
+  rL2:"<b>Halothane is eliminated too slowly</b> (0.38 against 0.25 measured). About 20% of halothane is metabolised, and the model metabolises less than that during uptake. The same applies, to a lesser degree, to isoflurane.",
+  rH8:"Known limitations",
+  rM1:"<b>Does not model V/Q heterogeneity</b> — overestimates F<sub>A</sub>/F<sub>I</sub> for poorly soluble agents (see above).",
+  rM2:"Does not model diffusion between adjacent tissues (fat also receives agent by diffusion from neighbouring muscle, not only through blood).",
+  rM3:"Metabolism is a first-order loss from the visceral compartment — it does not model enzyme saturation, induction, or the metabolites.",
+  rM4:"The visceral compartments are aggregated — liver, kidney and heart are not separated.",
+  rM5:"Does not model percutaneous loss, diffusion into air cavities, or diffusion hypoxia during emergence with N₂O.",
+  rM6:"Does not model soda lime absorption, circuit compliance, or variable dead space.",
+  rM7:"Body composition scales with weight; the fat fraction is not adjusted for age, sex or obesity.",
+  rM8:"MAC is corrected for age, but not for temperature, opioids or other adjuvants; N₂O receives no age correction.",
+  rM9:"Vaporisers are treated as ideal (output = dial setting, independent of FGF and temperature).",
+  rDisc:"<b>Educational use.</b> A simplified model, not clinically validated. It must not be used to guide management in real patients.",
+  rTc:"Compartment",rTdm:"Des measured",rTs:"sim.",rTim:"Iso measured",rTs2:"sim.",rThm:"Halo measured",rTs3:"sim.",
+  rVrg:"Aggregated VRG",rTag:"Agent",rT30m:"F<sub>A</sub>/F<sub>I</sub> 30 min<br>measured",rTsim:"simulator",
+  rTel:"elimination 5 min<br>measured",rTsim2:"simulator",
+  agDes:"Desflurane",agIso:"Isoflurane",agHal:"Halothane",
+  age:"Age",ageNeo:"neonate",ageMonth:"month",ageMonths:"months",ageYear:"year",ageYears:"years",
+  yAtm:"% of 1 atm",yFrac:"fraction of inspired gas",yMacMult:"multiples of MAC",
+  n2oAxis:"N₂O alveolar (right axis)",macAlv:"alveolar MAC",macBrainL:"brain MAC",
+  hl1mac:"1 MAC — immobility",hlAwake:"MAC-awake — awakening threshold",
+  macAgeNow:"MAC at this age",macAdult:"adult",
+  end:"end",freeMode:"Back to free mode",program:"Schedule",
+  lfIntro:"<b>Two anaesthetics, the same vaporizer, different flows.</b> Below minute ventilation, the circle system is a <b>controlled rebreathing system</b>: what the patient inhales is a mixture of fresh gas and exhaled gas already partly equilibrated with them. The time constant of the system is <b>reserve volume ÷ FGF</b> — and three of them are needed for a 95% change in composition. Everything on this screen follows from that ratio, including the fact that the dial stops being the variable of interest.",
+  lfDial:"Vaporizer (both sides)",lfLeft:"FGF left",lfRight:"FGF right",
+  lfPatient:"Patient and circuit",lfVc:"Circuit volume",
+  lfPlay:"▶ Play",lfPause:"❚❚ Pause",
+  lfNeo:"Neonate 3 kg",lfInf:"Infant 10 kg",lfChild:"Child 25 kg",lfAdult:"Adult 70 kg",
+  lfFresh:"fresh gas",lfVent:"ventilation",lfUp:"uptake",lfReb:"Rebreathing",lfMac:"brain MAC",
+  lfCkt:"CIRCUIT",lfAlv:"ALVEOLI",lfArt:"ARTERIAL",lfBrain:"BRAIN",lfMus:"MUSCLE",lfFat:"FAT",
+  lfVisc:"VISCERA",lfFatV:"PERIVISC FAT",lfFatP:"PERIPH FAT",lfVen:"VENOUS",lfWaste:"waste",
+  lfCost:"Agent cost",lfPerH:"per hour",lfSaving:"saving",
+  lfDiffFi:"Fᵢ — difference",lfDiffBrain:"Brain — difference",lfWhatEach:"what each one inhales",
+  lfMacDiff:"MAC of difference",lfPrice:"Agent price",
+  lfAuth:"<b>Vaporizer authority.</b> For inspired gas to reach 80% of the dial setting, the circuit at",
+  lfTakes:"takes",lfAndThe:"and the one at",
+  lfTauIs:"The time constant is <b>reserve volume ÷ FGF</b>, and the reserve volume is the circuit plus the patient's FRC —",
+  lfPlusFrc:"+",lf95needs:"and 95% of the new composition needs",lfOnTheRight:"on the right",
+  lfProtoTitle:"Paediatric low-flow protocol — the four phases",
+  lfGives:"that gives",lfVs:"versus",lfBrainMac:"<b>In the brain:</b> 1 MAC is reached at",
+  lfLeftS:"on the left and",lfRightS:"on the right — this is where the difference changes management.",
+  lfNotReached:"not reached",lfBeyondSim:"longer than the simulation",
+  lfPed:"<b>In the child, circuit inertia works in your favour.</b> The reserve volume — tubing, reservoir bag, ventilator, absorber and the patient's FRC — is of the order of 9–10 L in an adult and nearer 3 L in a small child. At 4 L·min⁻¹ a 3-L system has a time constant under a minute, so a change made at the flowmeter or the vaporizer appears at the airway almost at once; at 0.5 L·min⁻¹ the time constant is about 6 min and some 20 min are needed to reach 95% of a new composition. Add the FRC/V̇<sub>A</sub> ratio — around 1:5 in the infant against 1:1.5 in the adult — and the brain follows the alveolus almost without delay. Low flow is safe in children; what changes is that dosing error, in both directions, shows up faster.",
+  lfDialDiv:"<b>The dial is not the dose.</b> Because the inspired fraction is an average of fresh and rebreathed gas, holding an end-tidal 2% typically requires a dial a little above 2% at 2 L·min⁻¹, of the order of <b>3.5% at 0.5 L·min⁻¹</b>, and 4–5% during a wash-in already at low flow. The bedside rule that follows: when the end-tidal agent will not rise, the answer is almost always to <b>open the flow</b>, not to advance the vaporizer.",
+  lfMacAge:"<b>MAC changes with age — and here it is corrected for.</b> The MAC of sevoflurane in oxygen is 3.3 ± 0.2% in the full-term neonate and 3.2 ± 0.1% in the infant of 1–6 months, falling to about 2.5% from six months onward and to the adult value in adulthood. The simulator uses the MAC <b>for the age you set</b>, not the adult one — which is why an infant held at an end-tidal 2% shows up well below 1 MAC. At low flow that shortfall compounds with the dial-to-end-tidal divergence.",
+  lfFloor:"<b>The floor of the flow belongs to the machine, not to the patient.</b> FGF must at least replace metabolic oxygen uptake (≈6 mL·kg⁻¹·min⁻¹), any side-stream sample not returned to the circuit (150–200 mL·min⁻¹) and leak around the airway. In a 10-kg child that is ~60 mL·min⁻¹ of oxygen against up to 200 mL·min⁻¹ of sampling alone — sampling architecture and a cuffed tube matter more than the child's weight. A 100 mL·min⁻¹ leak around an uncuffed tube by itself exceeds metabolic uptake.",
+  lfProto:"<b>The four-phase sequence.</b> ① <b>Wash-in</b> at 4–6 L·min⁻¹ for 1–3 min — in a child, not the 5–10 min recommended in adults, because the reserve volume is smaller. ② <b>Stepwise transition</b>, e.g. 4 → 1.5 → 0.5 L·min⁻¹ over 5–10 min, raising the dial at each step. ③ <b>Maintenance</b> with FiO₂ ≥ 0.30, end-tidal CO₂ 30–40 mmHg and end-tidal agent titrated against age-adjusted MAC. ④ <b>Emergence</b> at FGF ≥ 4 L·min⁻¹ for the last 3–5 min. The saving was already made in phase ③; the brief high flow at the end is a deliberate, time-limited cost.",
+  lfDefaults:"<b>Weight-based starting points:</b> ≤ 1 L·min⁻¹ above ~10 kg and ~0.5 L·min⁻¹ above ~20 kg on a capable workstation. These are a pragmatic synthesis, not validated thresholds — no paediatric study has stratified fresh gas flow by weight. They sit deliberately above the technical floor: between the two lie the margin for a leak that changes during the case and the inertia of the circuit. Below 10 kg what is missing is published data, not technical feasibility.",
+  lfSrc:"Figures on this tab: Carlos RV, von Ungern-Sternberg BS. <i>Low-flow, minimal-flow and metabolic-flow anaesthesia on the modern paediatric workstation</i> (in preparation) and the primary sources cited therein.",
+  min:"min",hour:"h",day:"d",
+ }
+};
+let LANG="pt";
+try{ const sv=localStorage.getItem("gcLang");
+  LANG = sv || ((navigator.language||"en").toLowerCase().startsWith("pt") ? "pt" : "en");
+}catch(e){ LANG=(navigator.language||"en").toLowerCase().startsWith("pt")?"pt":"en"; }
+const t=k=>(I18N[LANG][k]!==undefined?I18N[LANG][k]:(I18N.pt[k]||k));
+// preço do agente: US$/mL de líquido (referência), convertido pela taxa do idioma
+const PRICE_USD={sevo:0.55,iso:0.22,des:0.42,halo:0.30};
+let PRICE=null;   // sobrescrito pelo usuário
+const AGNAME={sevo:"agSevo",iso:"agIso",des:"agDes",halo:"agHal"};
+function agName(a){ const k=Object.keys(AGENTS).find(x=>AGENTS[x]===a);
+  return (k&&AGNAME[k])?t(AGNAME[k]):(a===N2O?t("agN2o"):a.label); }
+function agentPrice(k){ return (PRICE&&PRICE[k]!=null)?PRICE[k]:PRICE_USD[k]*I18N[LANG].curRate; }
+function money(v){ return t("cur")+" "+v.toLocaleString(LANG==="pt"?"pt-BR":"en-US",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+// nf() = número formatado no idioma corrente (vírgula decimal em PT).
+// USAR SÓ EM TEXTO VISÍVEL — nunca em coordenada de SVG, que exige ponto decimal.
+function nf(v,d){ return Number(v).toLocaleString(LANG==="pt"?"pt-BR":"en-US",
+  {minimumFractionDigits:d,maximumFractionDigits:d}); }
+function setLang(l){ LANG=l; try{localStorage.setItem("gcLang",l);}catch(e){}
+  document.documentElement.lang = l==="pt"?"pt-BR":"en";
+  applyLang(); }
+
+/* =========================================================================
+   1. DADOS FARMACOLÓGICOS
+   ========================================================================= */
+// λ e MAC: Yasuda/Eger 1989 e Miller 2025 Tabela 18.1. macAwake = MAC-awake (limiar de despertar).
+// ===========================================================================
+// MOTOR v3 — 5 compartimentos teciduais, calibrado contra constantes de tempo
+// MEDIDAS em humanos (Yasuda/Eger, Anesthesiology 1991;74:489-98, n=8)
+// ===========================================================================
+// Estrutura: circuito -> alveolo -> sangue arterial -> cerebro, resto do VRG,
+// musculo, gordura perivisceral, gordura periferica.  Metabolismo hepatico
+// modelado como perda de 1a ordem a partir do resto do VRG (onde esta o figado).
+
+const AGENTS = {
+  sevo:{label:"Sevoflurano",short:"Sevo",lbg:0.65,lBrain:1.57,lMuscle:3.13,lFat:47.5,
+        mac:2.05,macAwake:0.63,pvap:157,dialMax:8, dialDef:2.0,mlVap:183,fMet:0.045,k20:0.0030,color:"#4dd9c0"},
+  iso :{label:"Isoflurano", short:"Iso", lbg:1.40,lBrain:1.70,lMuscle:2.92,lFat:44.9,
+        mac:1.28,macAwake:0.43,pvap:238,dialMax:5, dialDef:1.2,mlVap:195,fMet:0.002,k20:0.00022,color:"#ffb454"},
+  des :{label:"Desflurano", short:"Des", lbg:0.45,lBrain:1.29,lMuscle:2.02,lFat:27.2,
+        mac:6.0, macAwake:2.40,pvap:664,dialMax:18,dialDef:6.0,mlVap:210,fMet:0.0002,k20:0.00002,color:"#7aa2ff"},
+  halo:{label:"Halotano",   short:"Halo",lbg:2.50,lBrain:1.94,lMuscle:3.40,lFat:51.1,
+        mac:0.75,macAwake:0.41,pvap:243,dialMax:5, dialDef:0.8,mlVap:227,fMet:0.40,k20:0.0456,color:"#ff6b8b"},
+};
+const N2O={label:"Óxido nitroso",lbg:0.47,lBrain:1.10,lMuscle:1.20,lFat:2.30,
+           mac:104,macAwake:71,pvap:43880,fMet:0,color:"#9aa7b4"};
+const CIRCUIT_VOL_L=6.0;
+
+/* -------------------------------------------------------------------------
+   MAC POR IDADE
+   A MAC não é uma propriedade só do agente: varia com a idade, e o padrão NÃO
+   é o mesmo em todos eles. Halotano, isoflurano e desflurano sobem do neonato
+   até um pico no lactente (1-6 meses para halo e iso, 6-12 meses para des) e
+   caem daí por diante. O SEVOFLURANO é a exceção: é maior no neonato (3,3%) e
+   só decresce. Em todos, um valor fixo de adulto superestima a profundidade no
+   lactente, que é justamente onde o erro dói mais.
+
+   PONTOS MEDIDOS (idade em anos; 0 = neonato a termo):
+   - Sevoflurano  Lerman J et al. Anesthesiology 1994;80:814-24
+   - Desflurano   Taylor RH, Lerman J. Anesthesiology 1991;75:975-9
+   - Isoflurano   LeDez KM, Lerman J. Anesthesiology 1987;67:301-7 (pré-termo)
+                  + série pediátrica clássica reproduzida no Miller e no Coté
+   - Halotano     Lerman J et al. Anesthesiology 1983;59:421-4
+   - Adulto       âncora aos 40 anos = valor do Miller Tab. 18.1 já usado no app
+   - >40 anos     Mapleson WW. Br J Anaesth 1996;76:179-85:
+                  MAC(idade) = MAC40 · 10^(-0,00269 · (idade - 40))
+   O N₂O fica sem correção pediátrica — não há dado utilizável na criança.
+   ------------------------------------------------------------------------- */
+const MAC_AGE={
+  sevo:[[0,3.3],[0.25,3.2],[0.5,2.5],[12,2.5]],
+  des :[[0,9.2],[0.25,9.4],[0.75,9.9],[2,8.7],[4,8.6],[8,8.0]],
+  iso :[[0,1.60],[0.25,1.87],[0.75,1.80],[3,1.60]],
+  halo:[[0,0.87],[0.25,1.20],[0.75,0.97],[3,0.91]],
+};
+const MAPLESON_B=-0.00269, MAC_ANCHOR_AGE=40;
+function macAtAge(key,ageY){
+  const a=AGENTS[key]; if(!a) return N2O.mac;
+  const pts=MAC_AGE[key];
+  if(!pts||!pts.length) return a.mac;
+  const age=Math.max(0,ageY);
+  // curva medida + âncora adulta aos 40 anos
+  const curve=pts.concat([[MAC_ANCHOR_AGE,a.mac]]);
+  if(age>=MAC_ANCHOR_AGE) return a.mac*Math.pow(10,MAPLESON_B*(age-MAC_ANCHOR_AGE));
+  for(let i=0;i<curve.length-1;i++){
+    const [x0,y0]=curve[i],[x1,y1]=curve[i+1];
+    if(age<=x1) return y0+(y1-y0)*(age-x0)/(x1-x0);
+  }
+  return a.mac;
+}
+// MAC-awake acompanha a MAC mantendo a razão medida no adulto.
+function macAwakeAtAge(key,ageY){
+  const a=AGENTS[key]; return macAtAge(key,ageY)*(a.macAwake/a.mac);
+}
+// idade ↔ slider: resolução fina no lactente, exponencial daí em diante.
+// s 0..24 = meses 0..24 · s 24..100 = 2 a 90 anos
+function ageFromSlider(s){ return s<=24 ? s/12 : 2*Math.pow(45,(s-24)/76); }
+function sliderFromAge(y){ return y<=2 ? Math.round(y*12) : Math.round(24+76*Math.log(y/2)/Math.log(45)); }
+function fmtAge(y){
+  const mo=Math.round(y*12);
+  if(mo<1) return t("ageNeo");
+  if(mo<24) return mo+" "+(mo===1?t("ageMonth"):t("ageMonths"));
+  const a=Math.round(y); return a+" "+(a===1?t("ageYear"):t("ageYears"));
+}
+
+// Compartimentos: vol em L (70 kg), qFrac = fração do débito cardíaco.
+// V/Q resultante reproduz as constantes de tempo medidas por Yasuda 1991.
+const COMPS=[
+  {key:"brain", label:"Cérebro",              vol: 1.4, qFrac:0.140, lam:"lBrain"},
+  {key:"vrg",   label:"Vísceras (resto VRG)", vol: 8.6, qFrac:0.448, lam:"lBrain", met:true},
+  {key:"muscle",label:"Músculo",              vol:14.0, qFrac:0.144, lam:"lMuscle"},
+  {key:"fatV",  label:"Gordura perivisceral", vol: 5.0, qFrac:0.104, lam:"lFat"},
+  {key:"fatP",  label:"Gordura periférica",   vol: 6.0, qFrac:0.025, lam:"lFat"},
+];
+
+function physiology(wt,coM,vaM){
+  const wv=wt/70, wf=Math.pow(wt/70,0.75);
+  return {FRC:2.5*wv, VA:4.0*wf*vaM, Q:5.0*wf*coM,
+          comp:COMPS.map(c=>({...c,vol:c.vol*wv}))};
+}
+function valueAt(ev,f,t,fb){let v=fb;for(const e of ev){if(e.t<=t+1e-9&&e[f]!==undefined)v=e[f];}return v;}
+
+// k20 = constante de eliminação hepática a partir do compartimento visceral (min^-1).
+// Halotano: valor MEDIDO por Yasuda 1991 (Tabela 3), k20 = 0,0456 ± 0,0088.
+// Demais: escalados para reproduzir a fração metabolizada conhecida da literatura.
+function kMet(A){ return A.k20||0; }
+
+function simulate(o){
+  const {agentKey,weightKg=70,coMult=1,vaMult=1,shunt=0,durationMin=60,events=[],
+         fgf:fgf0=1,dial:dial0=2,n2o:n2o0=0,dt=0.005,sampleMin=0.25,metabolism=true,
+         circuitVol=null,ageY=40}=o;
+  const Vc=circuitVol||CIRCUIT_VOL_L;
+  const A=AGENTS[agentKey], ph=physiology(weightKg,coMult,vaMult), {FRC,VA,Q}=ph;
+  // MAC corrigida pela idade — é ela que define os múltiplos de MAC do traçado
+  const macAge=macAtAge(agentKey,ageY), macAwakeAge=macAwakeAtAge(agentKey,ageY);
+  const comp=ph.comp.map(c=>({...c,q:Q*c.qFrac,
+    tauA:(c.vol*A[c.lam])/(Q*c.qFrac), tauN:(c.vol*N2O[c.lam])/(Q*c.qFrac)}));
+  const qSum=comp.reduce((s,c)=>s+c.q,0);
+  const k20=metabolism?kMet(A):0;
+
+  let PiA=0,PA_A=0,PiN=0,PA_N=0,cumUp=0,cumMl=0,cumMet=0;
+  const tA={},tN={}; comp.forEach(c=>{tA[c.key]=0;tN[c.key]=0;});
+  const steps=Math.round(durationMin/dt), every=Math.max(1,Math.round(sampleMin/dt)), pts=[];
+
+  for(let i=0;i<=steps;i++){
+    const t=i*dt;
+    const fgf=valueAt(events,"fgf",t,fgf0), dial=valueAt(events,"dial",t,dial0),
+          fn2o=valueAt(events,"n2o",t,n2o0);
+    const PvA=comp.reduce((s,c)=>s+c.q*tA[c.key],0)/qSum;
+    const PvN=comp.reduce((s,c)=>s+c.q*tN[c.key],0)/qSum;
+    const Qe=Q*(1-shunt);
+    const upA=Qe*A.lbg*(PA_A-PvA)/100, upN=Qe*N2O.lbg*(PA_N-PvN)/100, upT=upA+upN;
+    const PaA=(1-shunt)*PA_A+shunt*PvA, PaN=(1-shunt)*PA_N+shunt*PvN;
+
+    if(i%every===0) pts.push({t:+t.toFixed(3),fgf,dial,n2o:fn2o,
+      Fi:PiA,FA:PA_A,Pa:PaA,Pv:PvA,
+      brain:tA.brain,vrg:tA.vrg,muscle:tA.muscle,fatV:tA.fatV,fatP:tA.fatP,
+      fat:(tA.fatV*5+tA.fatP*6)/11,
+      FiN:PiN,FAN:PA_N,brainN:tN.brain,
+      uptake:upA*1000,cumUp,cumMl,cumMet,
+      macA:PA_A/macAge, macBrain:tA.brain/macAge+tN.brain/N2O.mac});
+
+    const Vexp=Math.max(0,VA-upT), spill=Math.max(0,fgf-upT);
+    const dPA_A=(VA*PiA-Vexp*PA_A-upA*100)/FRC, dPA_N=(VA*PiN-Vexp*PA_N-upN*100)/FRC;
+    const dPiA=(fgf*dial+Vexp*PA_A-(VA+spill)*PiA)/Vc;
+    const dPiN=(fgf*fn2o+Vexp*PA_N-(VA+spill)*PiN)/Vc;
+    const dA={},dN={};
+    for(const c of comp){
+      dA[c.key]=(PaA-tA[c.key])/c.tauA;
+      dN[c.key]=(PaN-tN[c.key])/c.tauN;
+      if(c.met&&k20) dA[c.key]-=k20*tA[c.key];
+    }
+    PiA+=dPiA*dt; PA_A+=dPA_A*dt; PiN+=dPiN*dt; PA_N+=dPA_N*dt;
+    for(const c of comp){tA[c.key]+=dA[c.key]*dt; tN[c.key]+=dN[c.key]*dt;}
+    const mc=comp.find(c=>c.met);
+    if(k20&&mc) cumMet+=k20*tA[mc.key]*mc.vol*A[mc.lam]*A.lbg/100*1000*dt;
+    cumUp+=upA*1000*dt;
+    cumMl+=(fgf*dial/100)*1000*dt/A.mlVap;
+  }
+  return {points:pts,comp,agent:A,phys:ph,k20,Vc,macAge,macAwakeAge,ageY};
+}
+
+/* =========================================================================
+   3. GRÁFICO SVG (sem dependências, funciona offline)
+   ========================================================================= */
+function fmtT(m){ return m<60?nf(m,0)+"′" : nf(m/60,m%60?1:0)+t("hour"); }
+function fmtTau(m){ return m<60?nf(m,1)+" "+t("min") : m<1440?nf(m/60,1)+" "+t("hour") : nf(m/1440,1)+" "+t("day"); }
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+function drawChart(el, opt){
+  const {points,series,yMax,yLabel,markers=[],cursor=null,xKey="t",y2Max=null,y2Label=""}=opt;
+  const hasY2 = y2Max && series.some(s=>s.y2 && s.on!==false && points.some(p=>{const v=s.get(p);return v!=null&&v>0.05;}));
+  const W=Math.max(300,el.clientWidth||el.parentElement.clientWidth-12);
+  const H=W<420?250:320;
+  const m={l:44,r:hasY2?40:12,t:12,b:30};
+  const iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const xs=points.map(p=>p[xKey]);
+  const xMin=xs[0], xMax=xs[xs.length-1]||1;
+  const X=v=>m.l+(v-xMin)/(xMax-xMin||1)*iw;
+  const Y=v=>m.t+ih-Math.max(0,Math.min(v,yMax))/yMax*ih;
+  const Y2=v=>m.t+ih-Math.max(0,Math.min(v,y2Max))/y2Max*ih;
+
+  // ticks
+  const rawStep=(xMax-xMin)/6;
+  const nice=[1,2,5,10,15,20,30,60,90,120,180].find(s=>s>=rawStep)||240;
+  const xt=[]; for(let v=0;v<=xMax+1e-6;v+=nice) xt.push(v);
+  const yn=5, yt=[]; for(let i=0;i<=yn;i++) yt.push(yMax*i/yn);
+
+  let g="";
+  yt.forEach(v=>{ g+=`<line x1="${m.l}" y1="${Y(v).toFixed(1)}" x2="${W-m.r}" y2="${Y(v).toFixed(1)}" stroke="var(--grid)" stroke-dasharray="2 4"/>`
+    + `<text x="${m.l-7}" y="${(Y(v)+4).toFixed(1)}" fill="var(--muted)" font-size="10.5" text-anchor="end">${opt.yFmt?opt.yFmt(v):v.toFixed(yMax<3?1:0)}</text>`; });
+  xt.forEach(v=>{ g+=`<text x="${X(v).toFixed(1)}" y="${H-9}" fill="var(--muted)" font-size="10.5" text-anchor="middle">${fmtT(v)}</text>`; });
+  if(hasY2){ for(let i=0;i<=yn;i++){ const v=y2Max*i/yn;
+      g+=`<text x="${W-m.r+7}" y="${(Y2(v)+4).toFixed(1)}" fill="var(--c-n2o)" font-size="10.5" text-anchor="start" opacity=".85">${v.toFixed(0)}</text>`; }
+    g+=`<text x="${W-m.r+7}" y="${m.t-2}" fill="var(--c-n2o)" font-size="9.5" opacity=".85">${esc(y2Label)}</text>`; }
+
+  // linhas horizontais de referência
+  (opt.hlines||[]).forEach(h=>{ if(h.y>yMax) return;
+    g+=`<line x1="${m.l}" y1="${Y(h.y).toFixed(1)}" x2="${W-m.r}" y2="${Y(h.y).toFixed(1)}" stroke="${h.color}" stroke-width="1.2" stroke-dasharray="6 4" opacity=".7"/>`
+     + `<text x="${m.l+6}" y="${(Y(h.y)-5).toFixed(1)}" fill="${h.color}" font-size="10" opacity=".9">${esc(h.label)}</text>`; });
+
+  // marcadores de evento
+  markers.forEach(mk=>{ if(mk.t<xMin||mk.t>xMax) return;
+    const near = X(mk.t) > W-m.r-90;
+    g+=`<line x1="${X(mk.t).toFixed(1)}" y1="${m.t}" x2="${X(mk.t).toFixed(1)}" y2="${m.t+ih}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 3" opacity=".55"/>`
+     + `<text x="${(X(mk.t)+(near?-4:4)).toFixed(1)}" y="${m.t+11}" fill="var(--accent)" font-size="9.5" opacity=".9" text-anchor="${near?'end':'start'}">${esc(mk.label)}</text>`; });
+
+  // séries
+  series.filter(s=>s.on!==false).forEach(s=>{
+    let d="",started=false; const YY=s.y2?Y2:Y;
+    points.forEach(p=>{ const v=s.get(p); if(v==null||!isFinite(v))return;
+      d+=(started?"L":"M")+X(p[xKey]).toFixed(1)+" "+YY(v).toFixed(1)+" "; started=true; });
+    g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w||2}" ${s.dash?`stroke-dasharray="${s.dash}"`:""} stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+
+  // cursor
+  if(cursor!=null){
+    const cp=points.reduce((b,p)=>Math.abs(p[xKey]-cursor)<Math.abs(b[xKey]-cursor)?p:b,points[0]);
+    g+=`<line x1="${X(cp[xKey]).toFixed(1)}" y1="${m.t}" x2="${X(cp[xKey]).toFixed(1)}" y2="${m.t+ih}" stroke="var(--text)" stroke-width="1" opacity=".45"/>`;
+    series.filter(s=>s.on!==false).forEach(s=>{ const v=s.get(cp); if(v==null||!isFinite(v))return;
+      g+=`<circle cx="${X(cp[xKey]).toFixed(1)}" cy="${(s.y2?Y2(v):Y(v)).toFixed(1)}" r="3.5" fill="${s.color}" stroke="var(--panel)" stroke-width="1.5"/>`; });
+  }
+
+  g+=`<text transform="rotate(-90)" x="${-(m.t+ih/2)}" y="12" fill="var(--muted)" font-size="9.5" text-anchor="middle">${esc(yLabel)}</text>`;
+  el.innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block">${g}</svg>`;
+  el._X=X; el._m=m; el._iw=iw; el._xMin=xMin; el._xMax=xMax;
+}
+
+/* =========================================================================
+   4. CENÁRIOS DE ENSINO
+   ========================================================================= */
+const SCENARIOS=[
+ {id:"overpressure",name:"Indução com overpressure",
+  tag:"Por que giramos o vaporizador além do alvo?",
+  nameEn:"Induction with overpressure", tagEn:"Why do we turn the vaporiser past the target?",
+  cfg:{agentKey:"sevo",fgf:8,dial:8,n2o:0,durationMin:30,weightKg:70,
+       events:[{t:0,fgf:8,dial:8},{t:4,dial:2.5,label:"dial → 2,5%",labelEn:"dial → 2.5%"},{t:10,fgf:2,label:"FGF → 2 L",labelEn:"FGF → 2 L"}]},
+  teach:`<b>Overpressure.</b> Com o dial em 8% de sevoflurano, a F<sub>A</sub> ainda leva minutos para subir,
+  porque parte do agente é continuamente captada pelo sangue. Reduzindo o dial aos 4 min para 2,5%, a curva
+  alveolar estabiliza próximo de 1 MAC em vez de continuar subindo.
+  <ul><li>Observe o intervalo entre a curva do <b>circuito (F<sub>I</sub>)</b> e a <b>alveolar (F<sub>A</sub>)</b>: é a captação.</li>
+  <li>O <b>VRG</b> segue a F<sub>A</sub> com apenas ~2,5 min de atraso — por isso o paciente adormece rápido.</li>
+  <li>Aos 10 min o FGF cai para 2 L/min e a F<sub>I</sub> escorrega para baixo do dial.</li></ul>`,
+  teachEn:`<b>Overpressure.</b> With the dial at 8% sevoflurane, F<sub>A</sub> still takes minutes to rise, because part of the agent is continuously taken up by blood. Reducing the dial to 2.5% at 4 min lets the alveolar curve settle near 1 MAC instead of climbing further.
+  <ul><li>Watch the gap between the <b>circuit (F<sub>I</sub>)</b> and <b>alveolar (F<sub>A</sub>)</b> curves: that gap is uptake.</li>
+  <li>The <b>brain</b> follows F<sub>A</sub> with only ~2.5 min of delay — which is why the patient goes to sleep quickly.</li>
+  <li>At 10 min FGF drops to 2 L/min and F<sub>I</sub> slips below the dial setting.</li></ul>`},
+
+ {id:"lowflow",name:"Anestesia em baixo fluxo",
+  tag:"O dial deixa de representar o que o paciente recebe",
+  nameEn:"Low-flow anaesthesia", tagEn:"The dial stops representing what the patient receives",
+  cfg:{agentKey:"sevo",fgf:0.5,dial:3,n2o:0,durationMin:90,weightKg:70,
+       events:[{t:0,fgf:6,dial:3},{t:10,fgf:0.5,label:"FGF → 0,5 L",labelEn:"FGF → 0.5 L"},{t:60,dial:4.5,label:"dial → 4,5%",labelEn:"dial → 4.5%"}]},
+  teach:`<b>Baixo fluxo.</b> Com FGF de 0,5 L/min num circuito de 6 L, a constante de tempo é de ~12 min e
+  são precisos uns 36 min para 95% de mudança de composição. A maior parte do gás inspirado é <b>reinalada</b>,
+  e a F<sub>I</sub> vira uma média entre o dial e o gás expirado — já parcialmente equilibrado com o paciente.
+  <ul><li>Aos 60 min o dial sobe para 4,5% e mesmo assim a F<sub>A</sub> mal se move: em baixo fluxo o dial tem
+  <b>autoridade reduzida</b> sobre a concentração alveolar. A regra de bancada é que, quando a fração expirada
+  não sobe, se <b>abre o fluxo</b> — não se avança o vaporizador.</li>
+  <li>Em regime, manter 2% expirado pede um dial pouco acima de 2% a 2 L/min e da ordem de <b>3,5% a 0,5 L/min</b>.
+  O dial é um meio, não a variável de interesse: as variáveis são FiO₂, EtCO₂ e a fração expirada do agente.</li>
+  <li>Compare o <b>consumo de agente líquido</b> com o do cenário anterior — é a razão econômica e ecológica do baixo fluxo.</li>
+  <li>Na criança o mesmo cálculo dá outro número: o volume de reserva é ~3 L em vez de 9–10 L, então a 0,5 L/min
+  a constante cai para ~6 min. Veja a aba <b>Baixo fluxo</b> com a predefinição de lactente.</li></ul>`,
+  teachEn:`<b>Low flow.</b> At 0.5 L/min into a 6-L circuit the time constant is about 12 min, and some 36 min are needed for a 95% change in composition. Most of the inspired gas is <b>rebreathed</b>, so F<sub>I</sub> becomes an average of the dial and the exhaled gas — already partly equilibrated with the patient.
+  <ul><li>At 60 min the dial goes up to 4.5% and F<sub>A</sub> barely moves: at low flow the dial has <b>reduced authority</b> over the alveolar concentration. The bedside rule is that when the end-tidal fraction will not rise you <b>open the flow</b> — you do not advance the vaporiser.</li>
+  <li>At steady state, holding an end-tidal 2% needs a dial a little above 2% at 2 L/min and of the order of <b>3.5% at 0.5 L/min</b>. The dial is a means, not the variable of interest: the variables are FiO₂, end-tidal CO₂ and end-tidal agent.</li>
+  <li>Compare the <b>cumulative liquid agent</b> with the previous scenario — that is the economic and environmental case for low flow.</li>
+  <li>In a child the same arithmetic gives another number: the reserve volume is ~3 L instead of 9–10 L, so at 0.5 L/min the time constant falls to ~6 min. See the <b>Low flow</b> tab with the infant preset.</li></ul>`},
+
+ {id:"emergence",name:"Despertar e a memória da gordura",
+  tag:"Por que cirurgias longas acordam mais devagar",
+  nameEn:"Emergence and the memory of fat", tagEn:"Why long operations wake up more slowly",
+  cfg:{agentKey:"sevo",fgf:1,dial:2.2,n2o:0,durationMin:260,weightKg:70,
+       events:[{t:0,fgf:6,dial:3},{t:10,fgf:1,dial:2.2},{t:240,fgf:8,dial:0,label:"fim: dial 0, FGF 8 L",labelEn:"end: dial 0, FGF 8 L"}]},
+  teach:`<b>Washout.</b> No fim da cirurgia o dial vai a zero e o FGF sobe. A F<sub>A</sub> despenca em segundos,
+  o <b>VRG (cérebro)</b> cai em poucos minutos — mas o <b>músculo</b> e sobretudo a <b>gordura</b> continuam
+  devolvendo agente ao sangue por horas.
+  <ul><li>Esse retorno é o que sustenta a F<sub>A</sub> num platô baixo e retarda o despertar completo.</li>
+  <li>Mude a duração para 30 min e repare como a gordura mal carregou — despertar muito mais limpo.</li>
+  <li>Troque para <b>desflurano</b> (λ<sub>gordura</sub> 27 vs 47,5 do sevo) e compare a cauda.</li></ul>`,
+  teachEn:`<b>Washout.</b> At the end of surgery the dial goes to zero and FGF rises. F<sub>A</sub> collapses within seconds and the <b>brain</b> falls within minutes — but <b>muscle</b>, and above all <b>fat</b>, keep returning agent to the blood for hours.
+  <ul><li>That return is what holds F<sub>A</sub> on a low plateau and delays complete awakening.</li>
+  <li>Set the duration to 30 min and see how little the fat has loaded — a far cleaner emergence.</li>
+  <li>Switch to <b>desflurane</b> (λ<sub>fat</sub> 27 against 47.5 for sevo) and compare the tail.</li></ul>`},
+
+ {id:"secondgas",name:"Efeito do segundo gás",
+  tag:"N₂O acelera a subida do volátil",
+  nameEn:"Second gas effect", tagEn:"N₂O speeds up the rise of the volatile",
+  cfg:{agentKey:"sevo",fgf:6,dial:1,n2o:70,durationMin:30,weightKg:70,events:[]},
+  teach:`<b>Efeito do segundo gás.</b> O N₂O a 70% é captado em grande volume pelo sangue nos primeiros minutos.
+  Esse volume desaparecido do alvéolo é reposto por gás inspirado e <b>concentra</b> o sevoflurano que ficou —
+  a F<sub>A</sub>/F<sub>I</sub> do volátil sobe mais rápido do que subiria sozinha.
+  <ul><li>Zere o N₂O e compare: a diferença é real, mas modesta (~6–10% na F<sub>A</sub>/F<sub>I</sub> aos 5 min) —
+  compatível com a literatura, que hoje questiona sua relevância clínica.</li>
+  <li>O mesmo mecanismo aplicado ao próprio N₂O é o <b>efeito de concentração</b>: compare N₂O a 20% e a 70%.</li></ul>`,
+  teachEn:`<b>Second gas effect.</b> N₂O at 70% is taken up in large volume by the blood in the first minutes. That volume disappearing from the alveolus is replaced by inspired gas and <b>concentrates</b> the sevoflurane left behind — the volatile's F<sub>A</sub>/F<sub>I</sub> rises faster than it would alone.
+  <ul><li>Set N₂O to zero and compare: the difference is real but modest (~6–10% in F<sub>A</sub>/F<sub>I</sub> at 5 min) — consistent with the literature, which now questions its clinical relevance.</li>
+  <li>The same mechanism applied to N₂O itself is the <b>concentration effect</b>: compare N₂O at 20% and at 70%.</li></ul>`},
+
+ {id:"lowco",name:"Débito cardíaco baixo",
+  tag:"O choque acelera a indução — e a sobredose",
+  nameEn:"Low cardiac output", tagEn:"Shock speeds up induction — and overdose",
+  cfg:{agentKey:"halo",fgf:8,dial:1.5,n2o:0,durationMin:30,weightKg:70,coMult:0.5,events:[]},
+  teach:`<b>Débito cardíaco.</b> Com o débito cardíaco a metade do normal, menos sangue passa pelo alvéolo por minuto,
+  a captação cai e a F<sub>A</sub> <b>sobe mais rápido</b> — exatamente o oposto da intuição.
+  <ul><li>O agente escolhido é o halotano (muito solúvel) porque o efeito é mais dramático em agentes solúveis.</li>
+  <li>Troque para <b>desflurano</b> e mova o débito cardíaco: a curva quase não se mexe.</li>
+  <li>Consequência clínica: no paciente chocado, o dial habitual entrega uma dose cerebral maior — e o próprio
+  agente deprime ainda mais o débito, fechando um <b>ciclo vicioso</b>.</li></ul>`,
+  teachEn:`<b>Cardiac output.</b> With cardiac output at half of normal, less blood passes the alveolus each minute, uptake falls and F<sub>A</sub> <b>rises faster</b> — exactly the opposite of intuition.
+  <ul><li>The agent chosen here is halothane (highly soluble) because the effect is most dramatic with soluble agents.</li>
+  <li>Switch to <b>desflurane</b> and move cardiac output: the curve barely shifts.</li>
+  <li>Clinical consequence: in the shocked patient the habitual dial delivers a larger brain dose — and the agent itself depresses output further, closing a <b>vicious circle</b>.</li></ul>`},
+
+ {id:"shunt",name:"Shunt direita → esquerda",
+  tag:"Onde o agente insolúvel sofre mais",
+  nameEn:"Right-to-left shunt", tagEn:"Where the insoluble agent suffers most",
+  cfg:{agentKey:"des",fgf:8,dial:6,n2o:0,durationMin:30,weightKg:70,shunt:30,events:[]},
+  teach:`<b>Shunt.</b> Com 30% do débito desviado, sangue venoso se mistura ao sangue que saiu do alvéolo:
+  a P<sub>a</sub> (arterial) fica <b>abaixo</b> da F<sub>A</sub>, e o cérebro recebe menos agente do que o capnógrafo sugere.
+  <ul><li>Note que a F<sub>A</sub> até <b>sobe</b> um pouco — menos sangue passando pelo alvéolo significa menos captação.</li>
+  <li>Nos agentes solúveis essa alta da F<sub>A</sub> compensa parcialmente a diluição; nos insolúveis quase não compensa,
+  por isso o <b>shunt atrasa mais a indução com agentes pouco solúveis</b>.</li>
+  <li>Compare desflurano e halotano com o mesmo shunt.</li></ul>`,
+  teachEn:`<b>Shunt.</b> With 30% of the output diverted, venous blood mixes with blood leaving the alveolus: P<sub>a</sub> (arterial) sits <b>below</b> F<sub>A</sub>, and the brain receives less agent than the capnograph suggests.
+  <ul><li>Note that F<sub>A</sub> actually <b>rises</b> slightly — less blood passing the alveolus means less uptake.</li>
+  <li>With soluble agents that rise in F<sub>A</sub> partly compensates the dilution; with insoluble ones it barely does, which is why <b>shunt delays induction more with poorly soluble agents</b>.</li>
+  <li>Compare desflurane and halothane at the same shunt.</li></ul>`},
+
+ {id:"peds",name:"Criança de 10 kg",
+  tag:"Por que a indução pediátrica é tão rápida",
+  nameEn:"Ten-kilogram child", tagEn:"Why paediatric induction is so fast",
+  cfg:{agentKey:"sevo",fgf:4,dial:6,n2o:0,durationMin:30,weightKg:10,ageY:1,events:[{t:0,fgf:4,dial:6},{t:3,dial:2.5,label:"dial → 2,5%",labelEn:"dial → 2.5%"}]},
+  teach:`<b>Pediatria.</b> A criança tem ventilação alveolar alta em relação à CRF e um VRG proporcionalmente maior
+  e muito bem perfundido. O resultado é uma F<sub>A</sub>/F<sub>I</sub> que sobe muito mais rápido que no adulto.
+  <ul><li>Alterne o peso entre 10 kg e 70 kg com o mesmo dial e compare o tempo até 1 MAC cerebral.</li>
+  <li>Isso explica tanto a rapidez da indução inalatória quanto a facilidade de aprofundar demais sem perceber.</li></ul>`,
+  teachEn:`<b>Paediatrics.</b> A child has high alveolar ventilation relative to FRC and a proportionally larger, very well perfused vessel-rich group. The result is an F<sub>A</sub>/F<sub>I</sub> that rises far faster than in the adult.
+  <ul><li>Switch the weight between 10 kg and 70 kg at the same dial and compare the time to 1 brain MAC.</li>
+  <li>This explains both the speed of inhalational induction and how easily one goes too deep without noticing.</li></ul>`},
+
+ {id:"obese",name:"Cirurgia longa em obeso",
+  tag:"Sevo ou des para 6 horas?",
+  nameEn:"Long operation in obesity", tagEn:"Sevo or des for six hours?",
+  cfg:{agentKey:"sevo",fgf:1,dial:2,n2o:0,durationMin:400,weightKg:130,
+       events:[{t:0,fgf:6,dial:3},{t:10,fgf:1,dial:2},{t:360,fgf:8,dial:0,label:"fim da cirurgia",labelEn:"end of surgery"}]},
+  teach:`<b>Reservatório de gordura.</b> Seis horas de anestesia num paciente de 130 kg carregam substancialmente
+  o compartimento gorduroso, que depois devolve agente lentamente.
+  <ul><li>Rode este cenário com <b>sevoflurano</b> e depois com <b>desflurano</b> e compare a curva do VRG
+  depois do minuto 360.</li>
+  <li>É a base farmacocinética da preferência por desflurano em cirurgia bariátrica prolongada.</li></ul>`,
+  teachEn:`<b>The fat reservoir.</b> Six hours of anaesthesia in a 130-kg patient load the fat compartment substantially, and it then returns agent slowly.
+  <ul><li>Run this scenario with <b>sevoflurane</b> and then with <b>desflurane</b>, and compare the brain curve after minute 360.</li>
+  <li>This is the pharmacokinetic basis for preferring desflurane in prolonged bariatric surgery.</li></ul>`}
+];
+
+/* =========================================================================
+   5. ESTADO E INTERFACE
+   ========================================================================= */
+const S={agentKey:"sevo",fgf:2,dial:2,n2o:0,durationMin:60,weightKg:70,ageY:40,
+         coMult:1,vaMult:1,shunt:0,events:[],yMode:"pct",scn:null,cursor:null,
+         off:{}};
+try{const sv=JSON.parse(localStorage.getItem("simAnest")||"{}");Object.assign(S,sv,{events:[],scn:null,cursor:null});}catch(e){}
+function save(){try{localStorage.setItem("simAnest",JSON.stringify(
+  {agentKey:S.agentKey,fgf:S.fgf,dial:S.dial,n2o:S.n2o,durationMin:S.durationMin,weightKg:S.weightKg,
+   ageY:S.ageY,coMult:S.coMult,vaMult:S.vaMult,shunt:S.shunt,yMode:S.yMode,off:S.off}));}catch(e){}}
+
+const $=id=>document.getElementById(id);
+
+/* --- abas --- */
+$("tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t===b));
+  ["sim","lf","scn","cmp","ref"].forEach(k=>$("tab-"+k).classList.toggle("hide",k!==b.dataset.tab));
+  if(b.dataset.tab==="cmp") renderCmp(); if(b.dataset.tab==="ref") renderRef(); if(b.dataset.tab==="lf"){lfChips();lfSync();lfRender();}
+});
+
+/* --- chips de agente --- */
+function renderChips(){
+  $("agentChips").innerHTML=Object.entries(AGENTS).map(([k,a])=>
+    `<button class="chip${k===S.agentKey?" on":""}" data-k="${k}" style="${k===S.agentKey?`color:${a.color};border-color:${a.color}`:""}">${agName(a)}</button>`).join("");
+}
+$("agentChips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
+  const old=S.scnAgent||S.agentKey; S.agentKey=b.dataset.k; const a=AGENTS[S.agentKey];
+  $("s-dial").max=a.dialMax;
+  if(S.scn){ // reescala eventos do cenário proporcionalmente ao MAC do novo agente
+    const r=macAtAge(S.agentKey,S.ageY)/macAtAge(old,S.ageY), cl=v=>Math.min(a.dialMax,+(v*r).toFixed(2));
+    S.events=S.events.map(ev=>ev.dial===undefined?ev:{...ev,dial:cl(ev.dial)});
+    S.dial=cl(S.dial); S.scnAgent=S.agentKey;
+  } else if(S.dial>a.dialMax) S.dial=a.dialDef;
+  renderChips(); renderTeach(); sync(); run(); save();
+});
+
+/* --- sliders --- */
+const SLIDERS=[
+  ["fgf","s-fgf","v-fgf",v=>nf(v,1)+" L/min"],
+  ["dial","s-dial","v-dial",v=>nf(v,1)+" %"],
+  ["n2o","s-n2o","v-n2o",v=>v?nf(v,0)+" %":t("off")],
+  ["durationMin","s-dur","v-dur",v=>fmtT(v)],
+  ["weightKg","s-wt","v-wt",v=>v+" kg"],
+  ["coMult","s-co","v-co",v=>"×"+nf(v,2)+" ("+nf(5*Math.pow(S.weightKg/70,.75)*v,1)+" L/min)"],
+  ["vaMult","s-va","v-va",v=>"×"+nf(v,2)+" ("+nf(4*Math.pow(S.weightKg/70,.75)*v,1)+" L/min)"],
+  ["shunt","s-sh","v-sh",v=>nf(v,0)+" %"]
+];
+SLIDERS.forEach(([key,sid,vid,fmt])=>{
+  $(sid).addEventListener("input",e=>{
+    S[key]= key==="shunt"? +e.target.value : +e.target.value;
+    if(S.scn && (key==="fgf"||key==="dial"||key==="n2o")) { S.events=[]; S.scn=null; renderScn(); renderTeach(); }
+    $(vid).textContent=fmt(S[key]); run(); save();
+  });
+});
+function sync(){
+  const a=AGENTS[S.agentKey];
+  $("s-dial").max=a.dialMax; $("l-dial").textContent=t("vap")+" — "+agName(a);
+  SLIDERS.forEach(([key,sid,vid,fmt])=>{ $(sid).value=S[key]; $(vid).textContent=fmt(S[key]); });
+  $("s-sh").value=S.shunt*1; $("v-sh").textContent=nf(S.shunt,0)+" %";
+  $("s-age").value=sliderFromAge(S.ageY); $("v-age").textContent=fmtAge(S.ageY);
+}
+
+$("s-age").addEventListener("input",e=>{S.ageY=ageFromSlider(+e.target.value);
+  $("v-age").textContent=fmtAge(S.ageY); run(); save();});
+
+/* --- modo do eixo Y --- */
+$("ymode").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  S.yMode=b.dataset.y; [...$("ymode").children].forEach(c=>c.classList.toggle("on",c===b)); run(); save();});
+
+/* --- legenda clicável --- */
+$("legend").addEventListener("click",e=>{const s=e.target.closest("span");if(!s)return;
+  S.off[s.dataset.k]=!S.off[s.dataset.k]; run(); save();});
+
+/* --- cursor no gráfico --- */
+function bindCursor(el,getPts){
+  const move=ev=>{ const r=el.getBoundingClientRect();
+    const cx=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;
+    const X=el._X; if(!X)return;
+    const frac=(cx-el._m.l)/el._iw;
+    S.cursor=Math.max(el._xMin,Math.min(el._xMax,el._xMin+frac*(el._xMax-el._xMin)));
+    run(); };
+  el.addEventListener("mousemove",move);
+  el.addEventListener("mouseleave",()=>{S.cursor=null;run();});
+  el.addEventListener("touchstart",e=>{move(e);},{passive:true});
+  el.addEventListener("touchmove",e=>{move(e);},{passive:true});
+}
+
+/* =========================================================================
+   6. RENDER PRINCIPAL
+   ========================================================================= */
+let LAST=null;
+function run(){
+  const res=simulate({agentKey:S.agentKey,fgf:S.fgf,dial:S.dial,n2o:S.n2o,
+    durationMin:S.durationMin,weightKg:S.weightKg,ageY:S.ageY,coMult:S.coMult,vaMult:S.vaMult,
+    shunt:S.shunt/100,events:S.events,sampleMin:Math.max(.25,S.durationMin/600)});
+  LAST=res;
+  const a=res.agent, P=res.points;
+
+  let series,yMax,yLabel,yFmt,y2Max=null,y2Label="",hlines=[];
+  if(S.yMode==="pct"){
+    yMax=Math.max(.5,Math.max(...P.map(p=>Math.max(p.Fi,p.FA)))*1.15);
+    yLabel=t("yAtm"); yFmt=v=>nf(v,v<3?1:0)+"%";
+    series=[
+      {k:"Fi",  lbl:t("circuit"),color:"var(--c-fi)", dash:"5 3",w:1.6,get:p=>p.Fi},
+      {k:"FA",  lbl:t("alv"),   color:"var(--c-fa)", w:2.6,get:p=>p.FA},
+      {k:"Pa",  lbl:t("art"),   color:"var(--c-pa)", dash:"2 3",w:1.6,get:p=>p.Pa},
+      {k:"brain",lbl:t("brain"),       color:"var(--c-vrg)",w:2.4,get:p=>p.brain},
+      {k:"vrg", lbl:t("visc"),       color:"var(--c-vis)",dash:"3 2",w:1.7,get:p=>p.vrg},
+      {k:"mus", lbl:t("muscle"),        color:"var(--c-mus)",w:1.9,get:p=>p.muscle},
+      {k:"fatV",lbl:t("fatV"),color:"var(--c-fatv)",w:1.8,get:p=>p.fatV},
+      {k:"fatP",lbl:t("fatP"),  color:"var(--c-fat)", w:1.8,get:p=>p.fatP},
+      {k:"n2o", lbl:t("n2oAxis"),color:"var(--c-n2o)",dash:"6 3",w:1.6,y2:true,
+       get:p=>(S.n2o>0||p.FAN>0.01)?p.FAN:null}];
+    y2Max=100; y2Label="% N₂O";
+  } else if(S.yMode==="norm"){
+    yMax=1.05; yLabel=t("yFrac"); yFmt=v=>nf(v*100,0)+"%";
+    series=[
+      {k:"FA", lbl:"F_A/Fᵢ",         color:"var(--c-fa)", w:2.6,get:p=>p.Fi>1e-6?p.FA/p.Fi:null},
+      {k:"Pa", lbl:"P_a/Fᵢ",         color:"var(--c-pa)", dash:"2 3",w:1.6,get:p=>p.Fi>1e-6?p.Pa/p.Fi:null},
+      {k:"brain",lbl:t("brain")+"/Fᵢ",   color:"var(--c-vrg)",w:2.4,get:p=>p.Fi>1e-6?p.brain/p.Fi:null},
+      {k:"vrg",lbl:t("visc")+"/Fᵢ",    color:"var(--c-vis)",dash:"3 2",w:1.7,get:p=>p.Fi>1e-6?p.vrg/p.Fi:null},
+      {k:"mus",lbl:t("muscle")+"/Fᵢ",     color:"var(--c-mus)",w:1.9,get:p=>p.Fi>1e-6?p.muscle/p.Fi:null},
+      {k:"fatV",lbl:t("fatV")+"/Fᵢ",color:"var(--c-fatv)",w:1.8,get:p=>p.Fi>1e-6?p.fatV/p.Fi:null},
+      {k:"fatP",lbl:t("fatP")+"/Fᵢ", color:"var(--c-fat)",w:1.8,get:p=>p.Fi>1e-6?p.fatP/p.Fi:null},
+      {k:"n2o",lbl:"N₂O F_A/Fᵢ",     color:"var(--c-n2o)",dash:"6 3",w:1.6,get:p=>S.n2o>0&&p.FiN>1e-6?p.FAN/p.FiN:null}];
+  } else {
+    yMax=Math.max(1.5,Math.max(...P.map(p=>p.macBrain))*1.2); yLabel=t("yMacMult"); yFmt=v=>nf(v,1);
+    series=[
+      {k:"macA", lbl:t("macAlv"),  color:"var(--c-fa)", w:2.6,get:p=>p.macA+(S.n2o>0?p.FAN/N2O.mac:0)},
+      {k:"macB", lbl:t("macBrainL"),  color:"var(--c-vrg)",w:2.4,get:p=>p.macBrain}];
+    hlines=[{y:1,label:t("hl1mac"),color:"var(--muted)"},
+            {y:res.macAwakeAge/res.macAge,label:t("hlAwake"),color:"#ffc98a"}];
+  }
+  series.forEach(s=>s.on=!S.off[s.k]);
+
+  const markers=S.events.filter(e=>e.label).map(e=>({t:e.t,label:(LANG==="en"&&e.labelEn)?e.labelEn:e.label}));
+  drawChart($("chart"),{points:P,series,yMax,yLabel,yFmt,markers,cursor:S.cursor,y2Max,y2Label,hlines});
+
+  $("legend").innerHTML=series.map(s=>
+    `<span data-k="${s.k}" class="${s.on?"":"off"}"><i style="background:${s.color}"></i>${esc(s.lbl).replace("_A","<sub>A</sub>").replace("_a","<sub>a</sub>")}</span>`).join("");
+
+  // readouts no cursor (ou no fim)
+  const cp = S.cursor!=null ? P.reduce((b,p)=>Math.abs(p.t-S.cursor)<Math.abs(b.t-S.cursor)?p:b,P[0]) : P[P.length-1];
+  $("cursorLbl").textContent = S.cursor!=null ? "t = "+nf(cp.t,1)+" "+t("min") : t("end")+" ("+fmtT(S.durationMin)+")";
+  const macTot=cp.macBrain;
+  const cards=[
+    ro(t("circuit"), nf(cp.Fi,2)+"%", t("vap")+" "+nf(cp.dial,1)+"% · FGF "+nf(cp.fgf,1)+" L", "var(--c-fi)"),
+    ro(t("alv"), nf(cp.FA,2)+"%", "F_A/Fᵢ "+(cp.Fi>1e-6?nf(100*cp.FA/cp.Fi,0):"0")+"%", "var(--c-fa)"),
+    ro(t("brain"), nf(cp.brain,2)+"%", nf(cp.brain/res.macAge,2)+" "+t("macOfAgent"), "var(--c-vrg)"),
+    ro(t("macTot"), nf(macTot,2), S.n2o>0?t("agentN2o"):t("agentOnly"), macTot>1.5?"#ffc98a":"var(--text)"),
+    ro(t("uptake"), nf(cp.uptake,0)+" mL/min", t("vaporBlood")),
+    ro(t("consumo"), nf(cp.cumMl,1)+" mL", t("liquidCum"))];
+  if(a.fMet>0.01) cards.push(
+    ro(t("metab"), nf(cp.cumMet,0)+" mL", nf(100*cp.cumMet/(cp.cumUp||1),0)+"% "+t("viaLiver"), "#c98b3a"));
+  if(S.n2o>0||cp.FAN>0.01) cards.push(
+    ro(t("n2oAlv"), nf(cp.FAN,1)+"%", "F_A/Fᵢ "+(cp.FiN>1e-6?nf(100*cp.FAN/cp.FiN,0):"0")+"% · "+nf(cp.brainN/N2O.mac,2)+" MAC", "var(--c-n2o)"));
+  if(S.shunt>0) cards.push(
+    ro(t("art"), nf(cp.Pa,2)+"%", t("shunt")+" "+S.shunt+"% · "+(cp.FA>1e-6?nf(100*cp.Pa/cp.FA,0):"0")+"% "+t("ofFA"), "var(--c-pa)"));
+  // previsão de despertar: do desligamento do vaporizador até o VRG cruzar o MAC-awake
+  const awake=res.macAwakeAge;
+  let iOff=-1; for(let i=P.length-1;i>=0;i--) if(P[i].dial>0){iOff=i;break;}
+  if(iOff>=0 && iOff<P.length-1 && P[iOff].brain>awake){
+    let tAw=null; for(let i=iOff;i<P.length;i++) if(P[i].brain<=awake){tAw=P[i].t;break;}
+    cards.push(ro(t("awake"),
+      tAw!=null?fmtT(tAw-P[iOff].t):t("beyond"),
+      t("afterOff"), tAw!=null?"var(--accent)":"var(--muted)"));
+  }
+  $("readouts").innerHTML=cards.join("");
+
+  const COL={brain:"var(--c-vrg)",vrg:"var(--c-vis)",muscle:"var(--c-mus)",fatV:"var(--c-fatv)",fatP:"var(--c-fat)"};
+  const CKEY={brain:"brain",vrg:"visc",muscle:"muscle",fatV:"fatV",fatP:"fatP"};
+  $("taus").innerHTML=res.comp.map(c=>
+    ro("τ "+(CKEY[c.key]?t(CKEY[c.key]):c.label), fmtTau(c.tauA),
+       nf(c.vol,1)+" L · "+nf(c.q,2)+" L/min · λ "+nf(a[c.lam],2), COL[c.key])
+  ).join("");
+}
+function ro(l,v,s,c){return `<div class="ro"><div class="ro-l">${l.replace("_A","<sub>A</sub>")}</div>
+  <div class="ro-v" style="color:${c||"var(--text)"}">${v}</div><div class="ro-s">${s?s.replace("_A","<sub>A</sub>").replace("_a","<sub>a</sub>"):""}</div></div>`;}
+
+/* =========================================================================
+   7. CENÁRIOS
+   ========================================================================= */
+function renderScn(){
+  const L=k=>LANG==="en"?k+"En":k;   // escolhe o campo do idioma corrente
+  $("scnList").innerHTML=SCENARIOS.map(s=>
+    `<div class="scn${S.scn===s.id?" on":""}" data-id="${s.id}"><h3>${esc(s[L("name")]||s.name)}</h3><p>${esc(s[L("tag")]||s.tag)}</p></div>`).join("");
+}
+$("scnList").addEventListener("click",e=>{const d=e.target.closest(".scn");if(!d)return;
+  const s=SCENARIOS.find(x=>x.id===d.dataset.id); loadScn(s);
+  document.querySelector('.tab[data-tab="sim"]').click();
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(_){}});
+
+function loadScn(s){
+  S.scn=s.id; S.scnAgent=s.cfg.agentKey;
+  Object.assign(S,{coMult:1,vaMult:1,shunt:0,n2o:0,weightKg:70,ageY:40},s.cfg);
+  S.events=(s.cfg.events||[]).map(e=>({...e}));
+  S.shunt=s.cfg.shunt||0; S.cursor=null;
+  // sliders passam a refletir o estado em t = 0 (os eventos é que comandam depois)
+  S.fgf=valueAt(S.events,"fgf",0,S.fgf);
+  S.dial=valueAt(S.events,"dial",0,S.dial);
+  S.n2o=valueAt(S.events,"n2o",0,S.n2o);
+  renderChips(); renderScn(); renderTeach(); sync(); run(); applyLang(); save();
+}
+function renderTeach(){
+  const s=SCENARIOS.find(x=>x.id===S.scn);
+  if(!s){ $("teachBox").innerHTML=""; return; }
+  const tl=S.events.length
+    ? `<div style="margin-top:11px;font-size:12px;color:var(--muted)"><b style="color:var(--accent)">`+t("program")+`:</b> `
+      + S.events.map(e=>{const p=[];
+          if(e.fgf!==undefined)p.push("FGF "+nf(e.fgf,e.fgf%1?1:0)+" L");
+          if(e.dial!==undefined)p.push(t("vap")+" "+nf(e.dial,e.dial%1?1:0)+"%");
+          if(e.n2o!==undefined)p.push("N₂O "+nf(e.n2o,0)+"%");
+          return `<span style="white-space:nowrap">${fmtT(e.t)} → ${p.join(", ")}</span>`;}).join(" · ")
+      + `</div>` : "";
+  const L2=k=>(LANG==="en"&&s[k+"En"])?s[k+"En"]:s[k];
+  $("teachBox").innerHTML=`<div class="teach"><b>${esc(L2("name"))}</b> — ${L2("teach")}${tl}
+    <div class="row" style="margin-top:11px"><button class="btn" id="clrScn">${t("freeMode")}</button></div></div>`;
+  const b=$("clrScn"); if(b) b.onclick=()=>{S.scn=null;S.events=[];renderScn();renderTeach();run();};
+}
+
+/* =========================================================================
+   8. COMPARAR AGENTES
+   ========================================================================= */
+const CMP={fgf:8,dur:60,co:1,mode:"fa"};
+["cfgf","cdur","cco"].forEach((id,i)=>{
+  const key=["fgf","dur","co"][i];
+  $("s-"+id).addEventListener("input",e=>{CMP[key]=+e.target.value; renderCmp();});
+});
+$("cmpmode").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  CMP.mode=b.dataset.c; [...$("cmpmode").children].forEach(c=>c.classList.toggle("on",c===b)); renderCmp();});
+
+function renderCmp(){
+  $("v-cfgf").textContent=nf(CMP.fgf,1)+" L/min";
+  $("v-cdur").textContent=fmtT(CMP.dur);
+  $("v-cco").textContent="×"+nf(CMP.co,2);
+  const wash=CMP.mode==="wash";
+  const dur=wash?CMP.dur*2:CMP.dur;
+  const runs=Object.entries(AGENTS).map(([k,a])=>({k,a,
+    r:simulate({agentKey:k,fgf:CMP.fgf,dial:a.dialDef,durationMin:dur,coMult:CMP.co,
+      events:wash?[{t:CMP.dur,fgf:8,dial:0}]:[],sampleMin:Math.max(.25,dur/600)})}));
+  const n=runs[0].r.points.length;
+  const merged=[]; for(let i=0;i<n;i++){const o={t:runs[0].r.points[i].t};
+    runs.forEach(x=>{const p=x.r.points[i];
+      o[x.k]= wash ? p.brain/x.a.dialDef : (CMP.mode==="fa" ? (p.Fi>1e-6?p.FA/p.Fi:0) : (p.Fi>1e-6?p.brain/p.Fi:0));});
+    merged.push(o);}
+  const series=runs.map(x=>({k:x.k,lbl:agName(x.a),color:x.a.color,w:2.3,get:p=>p[x.k]}));
+  drawChart($("chartCmp"),{points:merged,series,yMax:1.05,
+    yLabel: wash?t("cYw"):t("yFrac"),
+    yFmt:v=>nf(v*100,0)+"%",
+    markers: wash?[{t:CMP.dur,label:"dial 0",labelEn:"dial 0"}]:[]});
+  $("legendCmp").innerHTML=series.map(s=>`<span><i style="background:${s.color}"></i>${esc(s.lbl)}</span>`).join("");
+
+  const at=(pts,t)=>pts.reduce((b,p)=>Math.abs(p.t-t)<Math.abs(b.t-t)?p:b,pts[0]);
+  const tMark=Math.min(5,dur), t5=at(merged,tMark), tEnd=merged[merged.length-1];
+  const rank=(pt,dir)=>[...runs].sort((a,b)=>dir*(pt[b.k]-pt[a.k]));
+  const what=CMP.mode==="vrg"?t("brain"):t("alv");
+  $("cmpTeach").innerHTML= wash
+    ? `<b>${t("cW1")}</b> ${t("cW2")} ${fmtT(CMP.dur)} ${t("cW3")}
+       ${rank(tEnd,1).map(x=>`${x.a.short} <b>${nf(tEnd[x.k]*100,1)}%</b>`).join(" · ")}.
+       ${t("cW4")}`
+    : `<b>${t("cS1")} — ${what}.</b> ${t("cS2")} ${nf(tMark,0)} ${t("min")}${t("cS3")}
+       ${rank(t5,1).map(x=>`${x.a.short} <b>${nf(t5[x.k]*100,0)}%</b>`).join(" · ")}.
+       ${t("cS4")}
+       (${[...runs].sort((a,b)=>a.a.lbg-b.a.lbg).map(x=>`${x.a.short} ${nf(x.a.lbg,2)}`).join(" · ")}).
+       ${t("cS5")}`;
+}
+
+/* =========================================================================
+   8b. BAIXO FLUXO — esquema animado, duas anestesias lado a lado
+   ========================================================================= */
+const LF={agent:"sevo",dial:3,fgfA:6,fgfB:0.5,weight:70,ageY:40,vc:6,dur:40,t:0,anim:0,playing:false,speed:60,runs:null};
+const PRESETS=[
+  {k:"neo", lk:"lfNeo", wt:3,  age:0,    vc:1.0, a:2.0, b:0.3},
+  {k:"lac", lk:"lfInf", wt:10, age:1,    vc:1.6, a:3.0, b:0.5},
+  {k:"cri", lk:"lfChild", wt:25, age:8,  vc:3.0, a:4.0, b:0.5},
+  {k:"adu", lk:"lfAdult", wt:70, age:40, vc:6.0, a:6.0, b:0.5},
+];
+function lfChips(){
+  $("lfAgent").innerHTML=Object.entries(AGENTS).map(([k,a])=>
+    `<button class="chip${k===LF.agent?" on":""}" data-k="${k}" style="${k===LF.agent?`color:${a.color};border-color:${a.color}`:""}">${a.short}</button>`).join("");
+  $("lfPreset").innerHTML=PRESETS.map(p=>
+    `<button class="chip${(LF.weight===p.wt&&Math.abs(LF.vc-p.vc)<0.05)?" on":""}" data-p="${p.k}" style="font-size:12.5px;padding:7px 12px">${t(p.lk)}</button>`).join("");
+}
+function lfRun(){
+  const common={agentKey:LF.agent,dial:LF.dial,weightKg:LF.weight,ageY:LF.ageY,durationMin:LF.dur,
+                circuitVol:LF.vc,sampleMin:Math.max(0.05,LF.dur/1000)};
+  LF.runs=[simulate({...common,fgf:LF.fgfA}),simulate({...common,fgf:LF.fgfB})];
+  $("s-lft").max=LF.runs[0].points.length-1;
+}
+/* ---- ESQUEMA ANATÔMICO ANIMADO ------------------------------------------
+   Idioma visual: ENCANAMENTO, no espírito da tela Picture do Gas Man —
+   tubos finos, cantos retos, ponta de seta mostrando direção, vermelho
+   arterial e azul venoso. Um encanamento completo POR FLUXO, empilhados:
+   duas alças sobrepostas na mesma anatomia ficavam ilegíveis.
+
+   O que é nosso: dentro de cada tubo corre um TRACEJADO cuja velocidade é
+   proporcional ao fluxo real daquele ramo. Em fluxo alto o gás fresco corre
+   e quase nada volta pela alça de reinalação; em 0,5 L/min inverte. O
+   tracejado só anda enquanto a simulação anda — pausar a anestesia pausa o gás.
+   -------------------------------------------------------------------------- */
+const LFC={a:"#4dd9c0", b:"#ff9f6b", art:"#e0605e", ven:"#5b7fb4", waste:"#5b6b7a", vent:"#7c8a99"};
+
+// tubo: bainha escura + tracejado colorido correndo dentro.
+// vel = L/min do ramo; o deslocamento vem do relógio de animação (LF.anim),
+// que só avança quando a linha do tempo avança.
+function lfPipe(d,color,lpm,w,mk){
+  const f=Math.max(0,Math.min(1,Math.sqrt(Math.max(0,lpm)/2.6)));   // 0 a 1, satura em ~6,8 L/min
+  const dash=(1.6+8*f).toFixed(1), gap=(8.5-5*f).toFixed(1);        // muito fluxo = quase contínuo
+  const off=-(LF.anim*(2.5+7*Math.sqrt(Math.max(0,lpm)))).toFixed(2);  // 1 casa dava jitter visível de 0,1 px
+  return `<path d="${d}" stroke="#161d24" stroke-width="${(w+3.5).toFixed(1)}" fill="none" `
+       + `stroke-linejoin="round" stroke-linecap="round"/>`
+       + `<path d="${d}" stroke="${color}" stroke-width="${w}" fill="none" stroke-linejoin="round" `
+       + `stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${off}" opacity="${(0.45+0.5*f).toFixed(2)}"`
+       + (mk?` marker-end="url(#${mk})"`:"")+`/>`;
+}
+// vaso: um só nível (cada linha do esquema é um fluxo)
+function lfVessel(x,y,w,h,v,D,color,label,opts){
+  const o=opts||{}, r=o.rx==null?4:o.rx, f=Math.max(0,Math.min(1,v/D));
+  let g=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#0e1418" stroke="#28323c" stroke-width="0.9"/>`;
+  g+=`<rect x="${x+2.5}" y="${(y+h-(h-5)*f-2.5).toFixed(1)}" width="${(w-5).toFixed(1)}" height="${((h-5)*f).toFixed(1)}" rx="${Math.max(2,r-2)}" fill="${color}" opacity="${(0.6+0.35*f).toFixed(2)}"/>`;
+  if(label) g+=`<text x="${x+w/2}" y="${y+h+10}" fill="var(--muted)" font-size="7.5" text-anchor="middle">${label}</text>`;
+  g+=`<text x="${x+w/2}" y="${y+h+20}" fill="${color}" font-size="9" text-anchor="middle" font-weight="700">${nf(v,2)}</text>`;
+  return g;
+}
+
+// uma linha = um encanamento completo para um FGF
+function lfRow(Y,r,fgf,accent,mkA,tIdx,S){
+  const p=r.points[Math.min(tIdx,r.points.length-1)], D=Math.max(LF.dial,0.01);
+  const VA=r.phys.VA, Q=r.phys.Q, reb=Math.max(0,1-fgf/Math.max(fgf,VA));
+  const waste=Math.max(0,fgf-(p.uptake||0)/1000), rebL=reb*VA;
+  const sc=v=>+(v*S).toFixed(2);
+  const T=(x,y,txt,fill,size,anchor,weight)=>
+    `<text x="${sc(x)}" y="${sc(Y+y)}" fill="${fill}" font-size="${sc(size).toFixed(1)}" `
+    +`text-anchor="${anchor||"start"}"${weight?` font-weight="${weight}"`:""}>${txt}</text>`;
+  const P=(x,y)=>`${sc(x)} ${sc(Y+y)}`;
+  const CK={x:78,w:76}, AL={x:200,w:46}, TOP=36, H=58, BASE=TOP+H, ART=20, VEN=BASE+34;
+  const OX=282, OW=71, OG=4, ON=5, OEND=OX+ON*OW+(ON-1)*OG;
+  let g="";
+
+  /* rótulo do fluxo */
+  g+=T(6,TOP+12,`<tspan font-weight="700">${nf(fgf,2)}</tspan>`,accent,13);
+  g+=T(6,TOP+24,"L/min "+t("lfFresh"),"var(--muted)",8);
+
+  /* gás fresco entra no circuito */
+  g+=lfPipe(`M${P(50,TOP+34)} L${P(CK.x-2,TOP+34)}`,accent,fgf,3.2,mkA);
+  /* descarte sai por cima */
+  g+=lfPipe(`M${P(CK.x+16,TOP)} L${P(CK.x+16,8)}`,LFC.waste,waste,2.6,"mkW");
+  g+=T(CK.x+22,10,t("lfWaste"),"var(--muted)",7.5);
+
+  /* circuito */
+  g+=lfVessel(sc(CK.x),sc(Y+TOP),sc(CK.w),sc(H),p.Fi,D,accent,t("lfCkt"));
+
+  /* inspiração: circuito → alvéolo */
+  g+=lfPipe(`M${P(CK.x+CK.w+1,TOP+16)} L${P(AL.x-3,TOP+16)}`,LFC.vent,VA,2.8,"mkV");
+  g+=T((CK.x+CK.w+AL.x)/2,TOP+11,"V̇<tspan baseline-shift='sub' font-size='"+sc(5.5).toFixed(1)+"'>A</tspan>","var(--muted)",8,"middle");
+
+  /* REINALAÇÃO: volta do alvéolo para o circuito, por cima. É a alça do baixo fluxo. */
+  if(reb>0.015) g+=lfPipe(`M${P(AL.x+10,TOP)} L${P(AL.x+10,20)} L${P(CK.x+CK.w-14,20)} L${P(CK.x+CK.w-14,TOP-2)}`,
+            accent,rebL,2.4,mkA);
+  g+=T((AL.x+CK.x+CK.w)/2,17,
+      t("lfReb")+` <tspan fill="${accent}" font-weight="700">${nf(100*reb,0)}%</tspan>`,"var(--muted)",7.5,"middle");
+
+  /* alvéolo */
+  g+=lfVessel(sc(AL.x),sc(Y+TOP),sc(AL.w),sc(H),p.FA,D,"var(--c-fa)",t("lfAlv"),{rx:12});
+
+  /* arterial: alvéolo → cada compartimento */
+  g+=lfPipe(`M${P(AL.x+AL.w+1,TOP+10)} L${P(266,TOP+10)} L${P(266,ART)} L${P(OEND-OW/2,ART)}`,LFC.art,Q,2.4);
+  g+=T(270,ART-5,t("lfArt"),LFC.art,7.5);
+
+  /* compartimentos */
+  const ORG=[[p.brain,"var(--c-vrg)",t("lfBrain")],[p.vrg,"var(--c-vis)",t("lfVisc")],
+             [p.muscle,"var(--c-mus)",t("lfMus")],[p.fatV,"var(--c-fatv)",t("lfFatV")],
+             [p.fatP,"var(--c-fat)",t("lfFatP")]];
+  ORG.forEach(([v,c,l],i)=>{
+    const X=OX+i*(OW+OG), cx=X+OW/2;
+    g+=`<path d="M${P(cx,ART)} L${P(cx,TOP-3)}" stroke="${LFC.art}" stroke-width="${sc(1.7)}" fill="none" opacity=".65" marker-end="url(#mkA)"/>`;
+    g+=`<path d="M${P(cx,BASE)} L${P(cx,VEN)}" stroke="${LFC.ven}" stroke-width="${sc(1.5)}" fill="none" opacity=".35"/>`;
+    g+=lfVessel(sc(X),sc(Y+TOP),sc(OW),sc(H),v,D,c,l);
+  });
+
+  /* venoso: compartimentos → alvéolo */
+  g+=lfPipe(`M${P(OEND-OW/2,VEN)} L${P(266,VEN)} L${P(266,TOP+42)} L${P(AL.x+AL.w+1,TOP+42)}`,LFC.ven,Q,2.2,"mkN");
+  g+=T(270,VEN+9,t("lfVen"),LFC.ven,7.5);
+
+  /* 1 MAC */
+  const macNow=macAtAge(LF.agent,LF.ageY), mf=macNow/D;
+  if(mf<=1.02){
+    const my=TOP+2.5+(H-5)*(1-Math.min(1,mf));
+    g+=`<path d="M${P(OX-3,my)} L${P(OEND+2,my)}" stroke="#ffc98a" stroke-width="${sc(1.1)}" `
+      +`stroke-dasharray="${sc(5)} ${sc(3)}" fill="none" opacity=".8"/>`;
+    g+=T(OX-5,my+3,"1 MAC","#ffc98a",7.5,"end");
+  }
+
+  /* resumo da linha */
+  const mac=p.brain/macNow, ch=(p.t>0.01)?(p.cumMl/p.t*60*agentPrice(LF.agent)):0, on=mac>=1;
+  g+=`<rect x="${sc(4)}" y="${sc(Y+TOP+40)}" width="${sc(68)}" height="${sc(34)}" rx="${sc(5)}" `
+    +`fill="${on?'rgba(255,201,138,.12)':'#0e1418'}" stroke="${on?'#ffc98a':accent}" stroke-width="${sc(0.9)}" opacity=".9"/>`;
+  g+=T(38,TOP+54,nf(mac,2),on?"#ffc98a":"var(--text)",13,"middle",700);
+  g+=T(38,TOP+64,t("lfMac"),"var(--muted)",7,"middle");
+  g+=T(38,BASE+30,money(ch)+"/"+t("hour"),"var(--muted)",8,"middle");
+  return g;
+}
+
+function lfStageSvg(W,tIdx){
+  const S=W/660, ROW=152;
+  let g=lfRow(0,LF.runs[0],LF.fgfA,LFC.a,"mkFa",tIdx,S);
+  g+=`<line x1="0" y1="${(ROW*S).toFixed(1)}" x2="${W}" y2="${(ROW*S).toFixed(1)}" stroke="#1c242c"/>`;
+  g+=lfRow(ROW+6,LF.runs[1],LF.fgfB,LFC.b,"mkFb",tIdx,S);
+  return {svg:g,h:+(2*ROW*S+14*S).toFixed(1)};
+}
+
+function lfRender(){
+  if(!LF.runs) lfRun();
+  const el=$("lfStage");
+  // abaixo de 560 o texto do esquema ficaria ilegível — mantém a largura e deixa rolar
+  const W=Math.max(560,el.parentElement?(el.parentElement.clientWidth||660):(el.clientWidth||660));
+  const tIdx=LF.t;
+  const St=lfStageSvg(W,tIdx);
+  el.innerHTML=`<svg width="${W}" height="${St.h}" viewBox="0 0 ${W} ${St.h}" style="display:block">
+    <defs>
+      <!-- markerUnits="userSpaceOnUse": SEM isto a cabeça escala com stroke-width
+           e vira um triângulo gigante quando o fluxo é alto. Erro já cometido antes. -->
+      ${[["mkFa",LFC.a],["mkFb",LFC.b],["mkA",LFC.art],["mkN",LFC.ven],["mkW",LFC.waste],["mkV",LFC.vent]]
+        .map(([id,c])=>`<marker id="${id}" markerWidth="8" markerHeight="8" refX="6.5" refY="4"
+           orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.6 L8,4 L0,7.4 Z" fill="${c}"/></marker>`).join("")}
+    </defs>
+    ${St.svg}</svg>`;
+  const pa=LF.runs[0].points[Math.min(tIdx,LF.runs[0].points.length-1)];
+  const pb=LF.runs[1].points[Math.min(tIdx,LF.runs[1].points.length-1)];
+  $("lfClock").textContent="t = "+fmtT(pa.t);
+  $("s-lft").value=tIdx;
+  const ag=AGENTS[LF.agent];
+  $("lfReadouts").innerHTML=[
+    ro(t("lfDiffFi"), nf(pa.Fi-pb.Fi,2)+"%", t("lfWhatEach"), "var(--c-fi)"),
+    ro(t("lfDiffBrain"), nf(pa.brain-pb.brain,2)+"%",
+       nf((pa.brain-pb.brain)/macAtAge(LF.agent,LF.ageY),2)+" "+t("lfMacDiff"), "var(--c-vrg)"),
+    ro(t("lfCost")+" ←", money(pa.cumMl*agentPrice(LF.agent)), nf(pa.cumMl,1)+" mL", "var(--c-fa)"),
+    ro(t("lfCost")+" →", money(pb.cumMl*agentPrice(LF.agent)),
+       pa.cumMl>0?t("lfSaving")+" "+nf(100*(1-pb.cumMl/pa.cumMl),0)+"%":"", "var(--c-fatv)"),
+  ].join("");
+  // tempo para o circuito atingir 90% do dial, nos dois
+  const t80=r=>{const q=r.points.find(p=>p.Fi>=0.8*LF.dial);return q?q.t:null;};
+  const tmac=r=>{const q=r.points.find(p=>p.brain>=macAtAge(LF.agent,LF.ageY));return q?q.t:null;};
+  const ta=t80(LF.runs[0]), tb=t80(LF.runs[1]);
+  const ma=tmac(LF.runs[0]), mb=tmac(LF.runs[1]);
+  // Volume de reserva = circuito + CRF do paciente. É ele, não o circuito sozinho,
+  // que governa a constante de tempo sentida à beira do leito (revisão §4.1).
+  const frc=physiology(LF.weight,1,1).FRC, vres=LF.vc+frc;
+  $("lfInsight").innerHTML=`<div class="teach">${t("lfAuth")}
+    <b style="color:var(--c-fa)">${nf(LF.fgfA,2)} L/min</b> ${t("lfTakes")}
+    <b>${ta!=null?fmtT(ta):t("lfBeyondSim")}</b>, ${t("lfAndThe")}
+    <b style="color:var(--c-fatv)">${nf(LF.fgfB,2)} L/min</b> ${t("lfTakes")}
+    <b>${tb!=null?fmtT(tb):t("lfBeyondSim")}</b>.
+    ${t("lfTauIs")} ${nf(LF.vc,1)} L ${t("lfPlusFrc")} ${nf(frc,frc<1?2:1)} L = <b>${nf(vres,1)} L</b>, ${t("lfGives")}
+    <b>${nf(vres/LF.fgfA,1)} ${t("min")}</b> ${t("lfVs")} <b>${nf(vres/LF.fgfB,1)} ${t("min")}</b>
+    — ${t("lf95needs")} <b>${nf(3*vres/LF.fgfB,0)} ${t("min")}</b> ${t("lfOnTheRight")}.
+    <br><br>${t("lfBrainMac")} <b>${ma!=null?fmtT(ma):t("lfNotReached")}</b> ${t("lfLeftS")}
+    <b>${mb!=null?fmtT(mb):t("lfNotReached")}</b> ${t("lfRightS")}
+    ${LF.weight<=25?`<br><br>${t("lfPed")}`:""}
+    ${Math.min(LF.fgfA,LF.fgfB)<=1?`<br><br>${t("lfDialDiv")}`:""}
+    ${LF.weight<=10?`<br><br>${t("lfMacAge")}`:""}
+    ${Math.min(LF.fgfA,LF.fgfB)<0.5?`<br><br>${t("lfFloor")}`:""}</div>
+    <details class="card" style="margin-top:12px"><summary>${t("lfProtoTitle")}</summary>
+    <div class="teach" style="margin-top:10px">${t("lfProto")}
+    ${LF.weight<=25?`<br><br>${t("lfDefaults")}`:""}
+    <p class="note" style="margin-top:11px">${t("lfSrc")}</p></div></details>`;
+}
+function lfSync(){
+  $("s-lfdial").max=AGENTS[LF.agent].dialMax;
+  $("s-lfdial").value=LF.dial; $("v-lfdial").textContent=nf(LF.dial,1)+" %";
+  $("s-lfA").value=LF.fgfA; $("v-lfA").textContent=nf(LF.fgfA,2)+" L/min";
+  $("s-lfB").value=LF.fgfB; $("v-lfB").textContent=nf(LF.fgfB,2)+" L/min";
+  $("s-lfwt").value=LF.weight; $("v-lfwt").textContent=LF.weight+" kg";
+  $("s-lfvc").value=LF.vc; $("v-lfvc").textContent=nf(LF.vc,1)+" L";
+  $("s-lfdur").value=LF.dur; $("v-lfdur").textContent=fmtT(LF.dur);
+  $("s-lfage").value=sliderFromAge(LF.ageY); $("v-lfage").textContent=fmtAge(LF.ageY);
+  $("lf-l-dial").textContent=t("vap")+" — "+AGENTS[LF.agent].label;
+}
+$("lfAgent").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
+  LF.agent=b.dataset.k; const a=AGENTS[LF.agent];
+  if(LF.dial>a.dialMax) LF.dial=a.dialDef*1.5;
+  lfChips(); lfSync(); LF.runs=null; lfRender();});
+$("lfPreset").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
+  const p=PRESETS.find(x=>x.k===b.dataset.p); LF.weight=p.wt; LF.ageY=p.age; LF.vc=p.vc; LF.fgfA=p.a; LF.fgfB=p.b;
+  lfChips(); lfSync(); LF.runs=null; LF.t=0; lfRender();});
+[["s-lfdial","dial","v-lfdial",v=>nf(v,1)+" %"],
+ ["s-lfA","fgfA","v-lfA",v=>nf(v,2)+" L/min"],
+ ["s-lfB","fgfB","v-lfB",v=>nf(v,2)+" L/min"],
+ ["s-lfwt","weight","v-lfwt",v=>v+" kg"],
+ ["s-lfvc","vc","v-lfvc",v=>nf(v,1)+" L"],
+ ["s-lfdur","dur","v-lfdur",v=>fmtT(v)]].forEach(([id,key,vid,fmt])=>{
+  $(id).addEventListener("input",e=>{LF[key]=+e.target.value; $(vid).textContent=fmt(LF[key]);
+    LF.runs=null; if(key==="dur")LF.t=0; lfChips(); lfRender();});
+});
+$("s-lfage").addEventListener("input",e=>{LF.ageY=ageFromSlider(+e.target.value);
+  $("v-lfage").textContent=fmtAge(LF.ageY); LF.runs=null; lfChips(); lfRender();});
+$("s-lft").addEventListener("input",e=>{LF.t=+e.target.value; lfRender();});
+$("lfSpeed").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  LF.speed=+b.dataset.s; [...$("lfSpeed").children].forEach(c=>c.classList.toggle("on",c===b));});
+$("lfPlay").addEventListener("click",()=>{
+  if(!LF.runs) lfRun();
+  if(LF.t>=LF.runs[0].points.length-1) LF.t=0;
+  LF.playing=!LF.playing; $("lfPlay").textContent=LF.playing?t("lfPause"):t("lfPlay");
+  if(LF.playing) lfTick(performance.now());
+});
+let lfLast=0;
+function lfTick(now){
+  if(!LF.playing) return;
+  const dtReal=Math.min(100,now-lfLast)/1000; lfLast=now;
+  LF.anim+=dtReal;                       // move o tracejado dentro dos tubos
+  const P=LF.runs[0].points, step=P[1].t-P[0].t;
+  LF.t+=dtReal*LF.speed/60/step;
+  if(LF.t>=P.length-1){LF.t=P.length-1; LF.playing=false; $("lfPlay").textContent=t("lfPlay");}
+  LF.t=Math.round(LF.t); lfRender();
+  if(LF.playing) requestAnimationFrame(lfTick);
+}
+
+/* =========================================================================
+   9. REFERÊNCIA
+   ========================================================================= */
+let refDone=false;
+function renderRef(){
+  if(refDone) return; refDone=true;
+  const rows=[...Object.entries(AGENTS).map(([k,a])=>[agName(a),a.lbg,a.lBrain,a.lMuscle,a.lFat,a.mac+" %",a.macAwake+" %",a.pvap]),
+              [t("agN2o"),N2O.lbg,N2O.lBrain,N2O.lMuscle,N2O.lFat,N2O.mac+" %",N2O.macAwake+" %",N2O.pvap]];
+  $("refTable").innerHTML=`<thead><tr><th>${t("rTag")}</th><th>λ ${t("hBG")}</th><th>λ ${t("hBr")}</th>
+    <th>λ ${t("hMu")}</th><th>λ ${t("hFa")}</th><th>MAC</th><th>MAC-awake</th><th>${t("hVap")}</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr>${r.map((c,i)=>`<td${i===0?' style="color:var(--text);font-weight:600"':""}>${c}</td>`).join("")}</tr>`).join("")+"</tbody>";
+
+  // ---- MAC por idade ----
+  const YU=LANG==="en"?"y":"a";
+  const AGES=[[0,t("ageNeo")],[0.25,"3 m"],[0.5,"6 m"],[1,"1 "+YU],[5,"5 "+YU],[12,"12 "+YU],[40,"40 "+YU],[70,"70 "+YU]];
+  const macRows=Object.entries(AGENTS).map(([k,a])=>
+    `<tr><td style="color:var(--text);font-weight:600">${agName(a)}</td>`+
+    AGES.map(([y])=>`<td>${nf(macAtAge(k,y),2)}</td>`).join("")+"</tr>");
+  const mt=$("macAgeTable");
+  if(mt) mt.innerHTML=`<thead><tr><th>${t("rTag")}</th>${AGES.map(([,l])=>`<th>${l}</th>`).join("")}</tr></thead><tbody>`
+    +macRows.join("")+"</tbody>";
+
+  const CKEY2={brain:"brain",vrg:"visc",muscle:"muscle",fatV:"fatV",fatP:"fatP"};
+  const ph=physiology(70,1,1);
+  $("physTable").innerHTML=`<thead><tr><th>${t("rTc")}</th><th>${t("hVol")}</th><th>${t("hCO")}</th><th>${t("hPerf")}</th>
+    <th>τ sevo</th><th>τ des</th></tr></thead><tbody>`+
+    ph.comp.map(c=>{const q=ph.Q*c.qFrac;
+      return `<tr><td style="color:var(--text);font-weight:600">${CKEY2[c.key]?t(CKEY2[c.key]):c.label}</td><td>${nf(c.vol,1)} L</td>
+      <td>${nf(c.qFrac*100,0)}%</td><td>${nf(q,2)} L/min</td>
+      <td>${fmtTau(c.vol*AGENTS.sevo[c.lam]/q)}</td><td>${fmtTau(c.vol*AGENTS.des[c.lam]/q)}</td></tr>`;}).join("")+
+    `<tr><td style="color:var(--text);font-weight:600">${t("hAlvFRC")}</td><td>${nf(ph.FRC,1)} L</td><td>—</td>
+      <td>V̇<sub>A</sub> ${nf(ph.VA,1)} L/min</td><td colspan="2">—</td></tr>
+     <tr><td style="color:var(--text);font-weight:600">${t("lfCkt")}</td><td>${nf(CIRCUIT_VOL_L,1)} L</td><td>—</td>
+      <td>FGF</td><td colspan="2">τ = V/FGF</td></tr></tbody>`;
+
+  const at=(p,t)=>p.reduce((b,x)=>Math.abs(x.t-t)<Math.abs(b.t-t)?x:b,p[0]);
+  const vr=Object.entries(AGENTS).map(([k,a])=>{
+    const p=simulate({agentKey:k,fgf:8,dial:a.dialDef,durationMin:60}).points;
+    const g=t=>{const q=at(p,t);return nf(100*q.FA/q.Fi,0)+"%";};
+    return `<tr><td style="color:var(--text);font-weight:600">${agName(a)}</td><td>${a.lbg}</td>
+      <td>${g(2)}</td><td>${g(5)}</td><td>${g(15)}</td><td>${g(30)}</td></tr>`;}).join("");
+  $("valTable").innerHTML=`<thead><tr><th>${t("rTag")}</th><th>λ b/g</th><th>2 min</th><th>5 min</th><th>15 min</th>
+    <th>30 min</th></tr></thead><tbody>${vr}</tbody>`;
+}
+
+/* =========================================================================
+   9b. APLICAR IDIOMA
+   ========================================================================= */
+function setTxt(sel,val,html){const e=typeof sel==="string"?document.querySelector(sel):sel;
+  if(!e)return; if(html)e.innerHTML=val; else e.textContent=val;}
+function applyLang(){
+  [...$("langSeg").children].forEach(b=>b.classList.toggle("on",b.dataset.l===LANG));
+  setTxt("header h1 span",("· "+t("tagline")));
+  setTxt("header .sub",t("sub"),true);
+  const TAB={sim:"tSim",lf:"tLf",scn:"tScn",cmp:"tCmp",ref:"tRef"};
+  document.querySelectorAll("#tabs .tab").forEach(b=>{b.textContent=t(TAB[b.dataset.tab]);});
+  // simulador
+  setTxt("#s-fgf",""); const L=(id,k)=>{const e=$(id); if(e)e.textContent=t(k);};
+  const lab=(sliderId,k)=>{const s=$(sliderId); if(!s)return; const sp=s.parentElement.querySelector(".sl-l"); if(sp)sp.innerHTML=t(k);};
+  lab("s-fgf","fgf"); lab("s-n2o","n2o"); lab("s-dur","dur");
+  lab("s-wt","weight"); lab("s-co","co"); lab("s-va","va"); lab("s-sh","shunt"); lab("s-age","age");
+  const adv=$("advBox"); if(adv) adv.querySelector("summary").textContent=t("patient");
+  $("l-dial").textContent=t("vap")+" — "+AGENTS[S.agentKey].label;
+  const ym=$("ymode").children; ym[0].innerHTML=t("yPct"); ym[1].innerHTML=t("yNorm"); ym[2].innerHTML=t("yMac");
+  // blocos estáticos marcados com data-i18n (aba Referência, sobretudo)
+  document.querySelectorAll("[data-i18n]").forEach(e=>{ const k=e.dataset.i18n;
+    if(I18N[LANG][k]!==undefined) e.innerHTML=I18N[LANG][k]; });
+  refDone=false; if(!$("tab-ref").classList.contains("hide")) renderRef();
+  // baixo fluxo
+  setTxt("#tab-lf .teach",t("lfIntro"),true);
+  $("lf-l-dial").textContent=t("lfDial");
+  $("tab-lf").querySelectorAll(".sl-l").forEach(e=>{});
+  const lfL=(id,k)=>{const e=$(id); if(e)e.textContent=t(k);};
+  $("s-lfA").parentElement.querySelector(".sl-l").textContent=t("lfLeft");
+  $("s-lfB").parentElement.querySelector(".sl-l").textContent=t("lfRight");
+  $("s-lfwt").parentElement.querySelector(".sl-l").textContent=t("weight");
+  $("s-lfage").parentElement.querySelector(".sl-l").textContent=t("age");
+  $("s-lfvc").parentElement.querySelector(".sl-l").textContent=t("lfVc");
+  lfL("lf-l-dur","dur"); lfL("lf-l-price","lfPrice");
+  $("lfPatientBox").querySelector("summary").textContent=t("lfPatient");
+  $("lfPlay").textContent=LF.playing?t("lfPause"):t("lfPlay");
+  $("lf-cur").textContent=t("cur");
+  $("lf-price").value=agentPrice(LF.agent).toFixed(2);
+  lfChips(); lfSync(); if(!$("tab-lf").classList.contains("hide")) lfRender();
+  sync(); run(); renderScn(); renderTeach();
+}
+$("langSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;setLang(b.dataset.l);});
+$("lf-price").addEventListener("input",e=>{const v=parseFloat(e.target.value);
+  if(isFinite(v)&&v>=0){ PRICE=PRICE||{}; PRICE[LF.agent]=v; lfRender(); }});
+
+/* =========================================================================
+   10. BOOT
+   ========================================================================= */
+renderChips(); renderScn(); renderTeach(); sync(); run(); applyLang();
+bindCursor($("chart"),()=>LAST.points);
+let rt; window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{run();
+  if(!$("tab-cmp").classList.contains("hide"))renderCmp();},120);});
+
+/* -------------------------------------------------------------------------
+   MANIFEST E SERVICE WORKER — versão hospedada.
+   O manifest saiu do data: URI e virou arquivo: o Chrome não considera
+   instalável um manifest com origem opaca. E o service worker NÃO PODE ser
+   inline nem data: URI — tem de ser um .js de mesma origem. É por isso que a
+   versão publicada tem três arquivos e a de e-mail tem um só.
+   ------------------------------------------------------------------------- */
+if("serviceWorker" in navigator)
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>

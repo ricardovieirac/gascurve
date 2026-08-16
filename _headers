@@ -1,0 +1,7 @@
+/*
+  Cabeçalhos do Netlify — sem isto o navegador pode servir uma versão velha do app.
+*/
+/index.html
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
