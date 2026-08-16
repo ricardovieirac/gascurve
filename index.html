@@ -110,7 +110,7 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;justify-content:space-between">
       <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
       <h1>GasCurve <span style="font-weight:400;color:var(--muted);font-size:15px">· cinética dos anestésicos inalatórios</span></h1>
-      <span class="badge">v3</span>
+      <span class="badge">v3.8</span>
       </div>
       <div class="seg" id="langSeg" style="flex:0 0 auto">
         <button data-l="pt">PT</button><button data-l="en">EN</button>
@@ -180,12 +180,9 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 
   <!-- ================= BAIXO FLUXO ================= -->
   <section id="tab-lf" class="hide">
-    <div class="teach" style="margin-bottom:12px">
-      <b>Duas anestesias, o mesmo vaporizador, fluxos diferentes.</b> Acompanhe cada compartimento
-      encher em tempo real. Repare no que acontece quando você <b>gira o dial</b> em baixo fluxo:
-      o circuito é grande e recebe pouco gás fresco, então o que o paciente inspira leva muitos
-      minutos para acompanhar o que você marcou no vaporizador.
-    </div>
+    <!-- preenchido por applyLang() a partir da chave lfIntro — não duplicar o texto aqui,
+         senão o HTML servido fica com uma versão velha contradizendo a atual -->
+    <div class="teach" style="margin-bottom:12px" data-i18n="lfIntro"></div>
 
     <div class="card">
       <div class="chips" id="lfAgent" style="margin-bottom:12px"></div>
@@ -1566,11 +1563,7 @@ let rt; window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=
   if(!$("tab-cmp").classList.contains("hide"))renderCmp();},120);});
 
 /* -------------------------------------------------------------------------
-   MANIFEST E SERVICE WORKER — versão hospedada.
-   O manifest saiu do data: URI e virou arquivo: o Chrome não considera
-   instalável um manifest com origem opaca. E o service worker NÃO PODE ser
-   inline nem data: URI — tem de ser um .js de mesma origem. É por isso que a
-   versão publicada tem três arquivos e a de e-mail tem um só.
+   MANIFEST E SERVICE WORKER — versão hospedada (gerada por build_site.py).
    ------------------------------------------------------------------------- */
 if("serviceWorker" in navigator)
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
