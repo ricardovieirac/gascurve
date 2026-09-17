@@ -31,6 +31,7 @@ body{
   -webkit-text-size-adjust:100%;
 }
 .wrap{max-width:900px;margin:0 auto;padding:16px 14px 56px}
+.wrap.wide{max-width:1240px}   /* so no Baixo fluxo em modo lado a lado */
 h1{font-size:19px;font-weight:700;margin:0;letter-spacing:-.3px}
 h2{font-size:14px;font-weight:600;margin:0 0 10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
 h3{font-size:15px;font-weight:600;margin:0 0 6px}
@@ -43,10 +44,46 @@ p{margin:0 0 10px}
 .tab{flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--panel);
   color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
 .tab.on{background:rgba(77,217,192,.13);border-color:var(--accent);color:var(--accent)}
-.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
-.chip{padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--text);
-  font-size:13.5px;font-weight:600;cursor:pointer}
-.chip.on{border-color:currentColor;background:rgba(255,255,255,.06)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+/* --- BOTAO DE AGENTE ------------------------------------------------------
+   No teste com residentes (set/2026) os tres avaliadores nao reconheceram os
+   chips como botoes clicaveis. Agora tem relevo, area de toque de 44 px e uma
+   tarja na COR PADRONIZADA do agente (ASTM D4774 / ISO 5360) -- a mesma cor do
+   rotulo do frasco e do vaporizador na sala. A cor vai na variavel --ac. */
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 15px;border-radius:11px;
+  border:1px solid var(--border);background:linear-gradient(180deg,#1c242c,#141a20);color:var(--text);
+  font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 5px rgba(0,0,0,.4);transition:transform .06s,box-shadow .12s}
+.chip:active{transform:translateY(1px);box-shadow:inset 0 2px 6px rgba(0,0,0,.45)}
+.chip .sw{width:13px;height:13px;border-radius:4px;flex:0 0 auto;background:var(--ac,var(--muted));
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.45),0 0 7px -1px var(--ac,transparent)}
+.chip.on{border-color:var(--ac,var(--accent));color:var(--ac,var(--text));
+  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.02)),#141a20;
+  box-shadow:inset 0 0 0 1px var(--ac,var(--accent)),0 0 14px -5px var(--ac,transparent)}
+/* --- interruptor (fase de despertar) --- */
+.tgl{display:flex;align-items:center;gap:11px;cursor:pointer;font-size:13.5px;font-weight:600;user-select:none}
+.tgl input{appearance:none;-webkit-appearance:none;width:42px;height:24px;border-radius:12px;background:var(--grid);
+  border:1px solid var(--border);position:relative;cursor:pointer;margin:0;flex:0 0 auto;transition:background .15s}
+.tgl input::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:var(--muted);transition:transform .15s,background .15s}
+.tgl input:checked{background:rgba(77,217,192,.22);border-color:var(--accent)}
+.tgl input:checked::after{transform:translateX(18px);background:var(--accent)}
+/* --- BAIXO FLUXO: uma coluna por fluxo (ajuste em cima, esquema embaixo) ---
+   Pedido dos residentes: as duas anestesias lado a lado, cada uma com o seu
+   proprio ajuste. O botao Disposicao troca entre empilhado e lado a lado; no
+   lado a lado a pagina alarga, e abaixo de 760 px volta a empilhar sozinho,
+   porque o esquema nao sobrevive a meia tela de celular. */
+.lfsplit{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px}
+.lfsplit.split{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px}
+@media(max-width:760px){.lfsplit.split{grid-template-columns:1fr}}
+.lfcol{margin:0;padding:13px 11px;min-width:0}   /* min-width:0 e obrigatorio: sem ele o SVG largo estoura a coluna do grid */
+.lfsplit.split .lfcol{padding:11px 8px}
+.lfstage{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.lfhd{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;justify-content:space-between;
+  padding:10px 2px 8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.lfhd .big{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:19px;font-weight:700;line-height:1;
+  font-variant-numeric:tabular-nums}
+.lfhd .lbl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 .sl{margin-bottom:13px}
 .sl:last-child{margin-bottom:0}
 .sl-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:8px}
@@ -59,6 +96,31 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   background:var(--accent);margin-top:-8px;border:3px solid var(--bg);box-shadow:0 0 0 1px var(--accent)}
 input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--bg)}
 input[type=range]:disabled{opacity:.35}
+/* --- INSTRUMENTO GRADUADO --------------------------------------------------
+   Pedido no 2o teste com residentes: os controles de MAQUINA (FGF, vaporizador,
+   N2O) tinham de parecer instrumento — regua graduada, ponteiro, cor propria —
+   e nao um slider generico. Os controles de PACIENTE (peso, idade, debito,
+   ventilacao, shunt, duracao) continuam sliders comuns de proposito: a
+   diferenca visual passou a carregar informacao.
+   A regua e um SVG desenhado por drawGauge(); o mapeamento valor->x tem de
+   repetir o do thumb nativo, que anda de NEEDLE/2 ate W-NEEDLE/2 — por isso a
+   constante NEEDLE do JS e a largura do thumb aqui TEM de ser a mesma. */
+.gauge{position:relative}
+.gauge .scale{height:26px;line-height:0;pointer-events:none}
+.gauge .scale svg{display:block;overflow:visible}
+input[type=range].gi{--ic:var(--accent);--p:0px;height:30px}
+input[type=range].gi::-webkit-slider-runnable-track{height:7px;border-radius:3px;
+  background:linear-gradient(90deg,var(--ic) var(--p),#0b1014 var(--p));
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.65),inset 0 0 0 1px var(--border)}
+input[type=range].gi::-moz-range-track{height:7px;border-radius:3px;
+  background:linear-gradient(90deg,var(--ic) var(--p),#0b1014 var(--p));
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.65),inset 0 0 0 1px var(--border)}
+input[type=range].gi::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;margin-top:-9.5px;
+  border:0;border-radius:0;box-shadow:none;
+  background:linear-gradient(90deg,transparent 0 5px,var(--ic) 5px 11px,transparent 11px);
+  filter:drop-shadow(0 0 5px var(--ic))}
+input[type=range].gi::-moz-range-thumb{width:16px;height:26px;border:0;border-radius:0;
+  background:linear-gradient(90deg,transparent 0 5px,var(--ic) 5px 11px,transparent 11px)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}
 .ro{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:9px 11px}
 .ro-l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;line-height:1.3}
@@ -110,7 +172,7 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;justify-content:space-between">
       <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
       <h1>GasCurve <span style="font-weight:400;color:var(--muted);font-size:15px">· cinética dos anestésicos inalatórios</span></h1>
-      <span class="badge">v3.8</span>
+      <span class="badge">v3.11</span>
       </div>
       <div class="seg" id="langSeg" style="flex:0 0 auto">
         <button data-l="pt">PT</button><button data-l="en">EN</button>
@@ -161,6 +223,20 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
       </details>
     </div>
 
+    <!-- FASE DE DESPERTAR — pedido do R2 no teste de usabilidade: ver a
+         ELIMINAÇÃO, não só a captação. O motor já fazia isso por evento
+         programado; o que faltava era um controle direto. -->
+    <div class="card" id="emgBox">
+      <label class="tgl"><input type="checkbox" id="c-emg"><span id="l-emgT">Despertar — desligar o vaporizador</span></label>
+      <div id="emgCtl" class="hide" style="margin-top:14px">
+        <div class="sl"><div class="sl-h"><span class="sl-l" id="l-emgAt">Desligar o vaporizador em</span><span class="sl-v" id="v-emg"></span></div>
+          <input type="range" id="s-emg" min="1" max="360" step="1"></div>
+        <div class="sl" style="margin-bottom:0"><div class="sl-h"><span class="sl-l" id="l-emgF">FGF de lavagem</span><span class="sl-v" id="v-emgf"></span></div>
+          <input type="range" id="s-emgf" min="0.3" max="12" step="0.1"></div>
+        <p class="note" style="margin:11px 0 0" id="l-emgNote"></p>
+      </div>
+    </div>
+
     <div class="chartbox">
       <div class="chart-hd">
         <div class="seg" id="ymode">
@@ -189,12 +265,6 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
       <div class="chips" id="lfPreset" style="margin-bottom:14px"></div>
       <div class="sl"><div class="sl-h"><span class="sl-l" id="lf-l-dial">Vaporizador (nos dois)</span><span class="sl-v" id="v-lfdial"></span></div>
         <input type="range" id="s-lfdial" min="0" max="8" step="0.1"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div class="sl" style="margin:0"><div class="sl-h"><span class="sl-l" style="color:var(--c-fa)">FGF esquerda</span><span class="sl-v" id="v-lfA"></span></div>
-          <input type="range" id="s-lfA" min="0.25" max="10" step="0.05"></div>
-        <div class="sl" style="margin:0"><div class="sl-h"><span class="sl-l" style="color:var(--c-fatv)">FGF direita</span><span class="sl-v" id="v-lfB"></span></div>
-          <input type="range" id="s-lfB" min="0.25" max="10" step="0.05"></div>
-      </div>
       <details id="lfPatientBox" style="margin-top:12px"><summary>Paciente e circuito</summary><div>
         <div class="sl"><div class="sl-h"><span class="sl-l">Peso</span><span class="sl-v" id="v-lfwt"></span></div>
           <input type="range" id="s-lfwt" min="3" max="120" step="1"></div>
@@ -212,8 +282,29 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
       </div></details>
     </div>
 
-    <div class="card" style="padding:10px 8px">
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div id="lfStage"></div></div>
+    <!-- Cada fluxo tem a sua COLUNA: o ajuste em cima, o esquema logo abaixo.
+         O botao Disposicao troca empilhado <-> lado a lado (pedido do teste
+         com residentes). No celular o CSS volta a empilhar sozinho. -->
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <span class="sl-l" id="lf-l-layout">Disposição</span>
+      <div class="seg" id="lfLayout">
+        <button data-v="stack" class="on">⬍ empilhado</button><button data-v="split">⬌ lado a lado</button>
+      </div>
+    </div>
+
+    <div class="lfsplit" id="lfSplit">
+      <div class="card lfcol">
+        <div class="sl" style="margin:0"><div class="sl-h"><span class="sl-l" style="color:var(--c-fa)">FGF esquerda</span><span class="sl-v" id="v-lfA"></span></div>
+          <input type="range" id="s-lfA" min="0.25" max="10" step="0.05"></div>
+        <div class="lfhd" id="lfHdA"></div>
+        <div class="lfstage"><div id="lfStageA"></div></div>
+      </div>
+      <div class="card lfcol">
+        <div class="sl" style="margin:0"><div class="sl-h"><span class="sl-l" style="color:var(--c-fatv)">FGF direita</span><span class="sl-v" id="v-lfB"></span></div>
+          <input type="range" id="s-lfB" min="0.25" max="10" step="0.05"></div>
+        <div class="lfhd" id="lfHdB"></div>
+        <div class="lfstage"><div id="lfStageB"></div></div>
+      </div>
     </div>
 
     <div class="card">
@@ -267,6 +358,7 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
       <h2 data-i18n="rH1">Coeficientes de partição a 37 °C</h2>
       <div class="tblwrap"><table id="refTable"></table></div>
       <p class="note" style="margin-top:11px" data-i18n="rP1"></p>
+      <p class="note" style="margin-top:11px" data-i18n="rColor"></p>
       <div class="warn" style="margin-top:11px" data-i18n="rP2"></div>
       <p class="note" style="margin-top:11px" data-i18n="rP3"></p>
       <p class="note" style="margin-top:11px" data-i18n="rP4"></p>
@@ -380,6 +472,15 @@ const I18N={
   muscle:"Músculo",fatV:"Gordura perivisceral",fatP:"Gordura periférica",n2oAlv:"N₂O alveolar",
   macTot:"MAC cerebral total",uptake:"Captação",consumo:"Consumo",metab:"Metabolizado",
   awake:"Despertar previsto",afterOff:"após desligar o vaporizador",beyond:"além da simulação",
+  emgT:"Despertar — desligar o vaporizador",emgAt:"Desligar o vaporizador em",emgF:"FGF de lavagem",
+  emgNote:"O vaporizador vai a zero no minuto escolhido e o circuito passa a ser lavado com o fluxo indicado. Daí em diante o gradiente se inverte: o agente volta dos tecidos para o alvéolo, e o que governa o despertar deixa de ser a solubilidade e passa a ser <b>quanto tempo a gordura teve para carregar</b>. O cartão <b>Despertar previsto</b> mede do desligamento até o cérebro cruzar o MAC-awake; no modo <b>MAC</b> do gráfico esse limiar é a linha tracejada. Aumente a duração da simulação para ver a cauda.",
+  bloodVapor:"do sangue de volta ao alvéolo",
+  gLow:"BAIXO FLUXO",gMinF:"MÍNIMO",
+  gTipFgf:"Faixas marcadas na régua: ≤ 1 L/min baixo fluxo · ≤ 0,5 mínimo · ≤ 0,35 metabólico.",
+  gTipDial:"A marca 1 MAC é a concentração equivalente a 1 MAC nesta idade — não é a dose que chega ao paciente: o que o dial entrega depende do FGF e da reinalação.",
+  lfLayout:"Disposição",lfStack:"⬍ empilhado",lfSide:"⬌ lado a lado",
+  lfFatVs:"PERIVISC",lfFatPs:"PERIFÉR",
+  rColor:"<b>As cores dos agentes</b> no app seguem o código de cor por agente dos rótulos de frasco e dos vaporizadores (ASTM D4774 / ISO 5360): <b>sevoflurano amarelo</b> · <b>isoflurano roxo</b> · <b>desflurano azul</b> · <b>halotano vermelho</b> — enflurano é laranja, e não está modelado aqui. São de propósito as mesmas cores da sala: quem aprende no simulador reconhece o frasco antes de ler o rótulo.",
   agentOnly:"só o agente",agentN2o:"agente + N₂O",vaporBlood:"vapor para o sangue",
   liquidCum:"agente líquido acumulado",viaLiver:"do captado · via hepática",
   macOfAgent:"MAC do agente",ofFA:"da F_A",
@@ -482,6 +583,15 @@ const I18N={
   muscle:"Muscle",fatV:"Perivisceral fat",fatP:"Peripheral fat",n2oAlv:"N₂O alveolar",
   macTot:"Total brain MAC",uptake:"Uptake",consumo:"Consumption",metab:"Metabolized",
   awake:"Predicted awakening",afterOff:"after turning the vaporizer off",beyond:"beyond the simulation",
+  emgT:"Emergence — turn the vaporizer off",emgAt:"Turn the vaporizer off at",emgF:"Washout FGF",
+  emgNote:"The vaporizer goes to zero at the chosen minute and the circuit is then washed out at the flow set here. From that point the gradient reverses: agent flows back from the tissues into the alveoli, and what governs awakening is no longer solubility but <b>how long the fat had to load</b>. The <b>Predicted awakening</b> card measures from shut-off until the brain crosses MAC-awake; in the chart's <b>MAC</b> mode that threshold is the dashed line. Increase the simulation length to see the tail.",
+  bloodVapor:"from blood back into the alveoli",
+  gLow:"LOW FLOW",gMinF:"MINIMAL",
+  gTipFgf:"Bands marked on the scale: ≤ 1 L·min⁻¹ low flow · ≤ 0.5 minimal · ≤ 0.35 metabolic.",
+  gTipDial:"The 1 MAC mark is the concentration equal to 1 MAC at this age — not the dose reaching the patient: what the dial delivers depends on FGF and rebreathing.",
+  lfLayout:"Layout",lfStack:"⬍ stacked",lfSide:"⬌ side by side",
+  lfFatVs:"PERIVISC",lfFatPs:"PERIPH",
+  rColor:"<b>Agent colours</b> in the app follow the agent-specific colour code of bottle labels and vaporizers (ASTM D4774 / ISO 5360): <b>sevoflurane yellow</b> · <b>isoflurane purple</b> · <b>desflurane blue</b> · <b>halothane red</b> — enflurane is orange, and is not modelled here. These are deliberately the operating-room colours: whoever learns on the simulator recognises the bottle before reading the label.",
   agentOnly:"agent only",agentN2o:"agent + N₂O",vaporBlood:"vapor into blood",
   liquidCum:"cumulative liquid agent",viaLiver:"of uptake · hepatic route",
   macOfAgent:"MAC of the agent",ofFA:"of F_A",
@@ -605,15 +715,21 @@ function setLang(l){ LANG=l; try{localStorage.setItem("gcLang",l);}catch(e){}
 // musculo, gordura perivisceral, gordura periferica.  Metabolismo hepatico
 // modelado como perda de 1a ordem a partir do resto do VRG (onde esta o figado).
 
+// CORES: codigo de cor POR AGENTE do ASTM D4774 / ISO 5360 -- o mesmo dos
+// rotulos de frasco, dos gargalos com chave e das tarjas do vaporizador:
+// sevoflurano AMARELO, isoflurano ROXO, desflurano AZUL, halotano VERMELHO
+// (enflurano laranja, nao modelado aqui). Escolhidos os tons que sobrevivem
+// ao fundo escuro sem virar neon. Nao trocar por gosto: o residente reconhece
+// a cor antes de ler o nome.
 const AGENTS = {
   sevo:{label:"Sevoflurano",short:"Sevo",lbg:0.65,lBrain:1.57,lMuscle:3.13,lFat:47.5,
-        mac:2.05,macAwake:0.63,pvap:157,dialMax:8, dialDef:2.0,mlVap:183,fMet:0.045,k20:0.0030,color:"#4dd9c0"},
+        mac:2.05,macAwake:0.63,pvap:157,dialMax:8, dialDef:2.0,mlVap:183,fMet:0.045,k20:0.0030,color:"#f0c33c"},
   iso :{label:"Isoflurano", short:"Iso", lbg:1.40,lBrain:1.70,lMuscle:2.92,lFat:44.9,
-        mac:1.28,macAwake:0.43,pvap:238,dialMax:5, dialDef:1.2,mlVap:195,fMet:0.002,k20:0.00022,color:"#ffb454"},
+        mac:1.28,macAwake:0.43,pvap:238,dialMax:5, dialDef:1.2,mlVap:195,fMet:0.002,k20:0.00022,color:"#a880ff"},
   des :{label:"Desflurano", short:"Des", lbg:0.45,lBrain:1.29,lMuscle:2.02,lFat:27.2,
-        mac:6.0, macAwake:2.40,pvap:664,dialMax:18,dialDef:6.0,mlVap:210,fMet:0.0002,k20:0.00002,color:"#7aa2ff"},
+        mac:6.0, macAwake:2.40,pvap:664,dialMax:18,dialDef:6.0,mlVap:210,fMet:0.0002,k20:0.00002,color:"#4d9bff"},
   halo:{label:"Halotano",   short:"Halo",lbg:2.50,lBrain:1.94,lMuscle:3.40,lFat:51.1,
-        mac:0.75,macAwake:0.41,pvap:243,dialMax:5, dialDef:0.8,mlVap:227,fMet:0.40,k20:0.0456,color:"#ff6b8b"},
+        mac:0.75,macAwake:0.41,pvap:243,dialMax:5, dialDef:0.8,mlVap:227,fMet:0.40,k20:0.0456,color:"#e8514c"},
 };
 const N2O={label:"Óxido nitroso",lbg:0.47,lBrain:1.10,lMuscle:1.20,lFat:2.30,
            mac:104,macAwake:71,pvap:43880,fMet:0,color:"#9aa7b4"};
@@ -952,8 +1068,12 @@ const SCENARIOS=[
    ========================================================================= */
 const S={agentKey:"sevo",fgf:2,dial:2,n2o:0,durationMin:60,weightKg:70,ageY:40,
          coMult:1,vaMult:1,shunt:0,events:[],yMode:"pct",scn:null,cursor:null,
+         emg:{on:false,tOff:30,fgf:8},
          off:{}};
 try{const sv=JSON.parse(localStorage.getItem("simAnest")||"{}");Object.assign(S,sv,{events:[],scn:null,cursor:null});}catch(e){}
+// versoes antigas gravaram S sem o bloco emg — sem esta guarda o app quebra no boot
+if(!S.emg||typeof S.emg!=="object") S.emg={on:false,tOff:30,fgf:8};
+if(!(S.emg.tOff>0)) S.emg.tOff=30; if(!(S.emg.fgf>0)) S.emg.fgf=8;
 function save(){try{localStorage.setItem("simAnest",JSON.stringify(
   {agentKey:S.agentKey,fgf:S.fgf,dial:S.dial,n2o:S.n2o,durationMin:S.durationMin,weightKg:S.weightKg,
    ageY:S.ageY,coMult:S.coMult,vaMult:S.vaMult,shunt:S.shunt,yMode:S.yMode,off:S.off}));}catch(e){}}
@@ -964,13 +1084,143 @@ const $=id=>document.getElementById(id);
 $("tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t===b));
   ["sim","lf","scn","cmp","ref"].forEach(k=>$("tab-"+k).classList.toggle("hide",k!==b.dataset.tab));
+  lfApplyLayout();
   if(b.dataset.tab==="cmp") renderCmp(); if(b.dataset.tab==="ref") renderRef(); if(b.dataset.tab==="lf"){lfChips();lfSync();lfRender();}
 });
+
+/* --- INSTRUMENTOS GRADUADOS ----------------------------------------------
+   Regua + ponteiro para os controles de maquina. So eles: peso, idade, debito,
+   ventilacao, shunt e duracao seguem sliders comuns, para que a diferenca
+   visual diga o que e ajuste de maquina e o que e condicao do paciente.
+   NEEDLE = largura do thumb; TEM de bater com a largura no CSS (.gi::thumb),
+   senao a regua desalinha do ponteiro — o thumb nativo anda de NEEDLE/2 ate
+   W-NEEDLE/2, e e esse o mapeamento que X() reproduz. */
+const NEEDLE=16;
+const GAUGE_IDS=["s-fgf","s-dial","s-n2o","s-lfA","s-lfB","s-lfdial"];
+const G_BANDS=[  // baixo fluxo / minimo / metabolico (Baum; revisao do Ricardo)
+  {to:1,   fill:"rgba(120,200,255,.085)", label:"gLow"},
+  {to:0.5, fill:"rgba(120,200,255,.13)",  label:"gMinF"},
+  {to:0.35,fill:"rgba(120,200,255,.20)"}];
+const G_BANDTX="#8fb9d6";
+
+function gaugeSpec(id){
+  if(id==="s-fgf"||id==="s-lfA"||id==="s-lfB")
+    return {color: id==="s-lfA"?LFC.a : id==="s-lfB"?LFC.b : "#3fb84f",
+            minor:0.5, major:[0.5,1,2,3,4,5,6,7,8,9,10], majorNarrow:[0.5,1,2,4,6,8,10],
+            fmt:v=>nf(v,v<1?1:0),
+            tint:v=>(v<=1?G_BANDTX:"var(--muted)"), bands:G_BANDS, tip:"gTipFgf"};
+  if(id==="s-dial"||id==="s-lfdial"){
+    const sim=id==="s-dial", k=sim?S.agentKey:LF.agent, a=AGENTS[k], mx=a.dialMax;
+    const stepMaj=mx>10?2:1, maj=[];
+    for(let v=0;v<=mx+1e-9;v+=stepMaj) maj.push(+v.toFixed(2));
+    return {color:a.color, minor:mx>10?1:0.5, major:maj, fmt:v=>nf(v,0),
+            marks:[{v:macAtAge(k,sim?S.ageY:LF.ageY),label:"1 MAC",color:"#ffc98a"}],
+            tip:"gTipDial"};
+  }
+  if(id==="s-n2o") return {color:"#2364c4", minor:5, major:[0,25,50,75], fmt:v=>nf(v,0)};
+  return null;
+}
+
+function gaugeFill(inp){
+  const W=inp.clientWidth; if(!W) return;
+  const min=+inp.min, max=+inp.max, v=+inp.value;
+  const x=NEEDLE/2+(W-NEEDLE)*(max>min?(v-min)/(max-min):0);
+  inp.style.setProperty("--p",x.toFixed(1)+"px");
+}
+
+function drawGauge(id){
+  const inp=$(id); if(!inp) return;
+  const wrap=inp.parentElement; if(!wrap||!wrap.classList.contains("gauge")) return;
+  const sp=gaugeSpec(id); if(!sp) return;
+  const W=inp.clientWidth; if(W<60) return;          // aba escondida: desenha ao aparecer
+  const min=+inp.min, max=+inp.max, span=W-NEEDLE, H=26;
+  const X=v=>+(NEEDLE/2+span*(Math.max(min,Math.min(max,v))-min)/(max-min)).toFixed(2);
+  inp.style.setProperty("--ic",sp.color);
+  if(sp.tip) inp.title=t(sp.tip);
+  const marks=(sp.marks||[]).filter(m=>m.v>=min&&m.v<=max);
+  let g="";
+  (sp.bands||[]).forEach(b=>{
+    if(b.to<=min) return;
+    const x0=X(min), x1=X(b.to), w=x1-x0; if(w<2) return;
+    g+=`<rect x="${x0}" y="13" width="${w.toFixed(2)}" height="13" fill="${b.fill}"/>`;
+    if(b.label && w>=58)
+      g+=`<text x="${(x0+4).toFixed(1)}" y="23" fill="${G_BANDTX}" font-size="7" letter-spacing=".3">${t(b.label)}</text>`;
+  });
+  const first=Math.ceil((min-1e-9)/sp.minor)*sp.minor;
+  for(let v=first;v<=max+1e-9;v=+(v+sp.minor).toFixed(6)){
+    const maj=sp.major.some(m=>Math.abs(m-v)<1e-6), x=X(v);
+    g+=`<line x1="${x}" y1="${maj?13:17}" x2="${x}" y2="24" stroke="${maj?"#5a6b7c":"#2b3540"}" stroke-width="${maj?1.2:1}"/>`;
+  }
+  ((W<430&&sp.majorNarrow)?sp.majorNarrow:sp.major).forEach(v=>{
+    if(v<min-1e-9||v>max+1e-9) return;
+    const x=X(v);
+    if(marks.some(m=>Math.abs(X(m.v)-x)<32)) return;   // nao brigar com a marca didatica
+    g+=`<text x="${x}" y="10" fill="${sp.tint?sp.tint(v):"var(--muted)"}" font-size="9.5" text-anchor="middle">${sp.fmt(v)}</text>`;
+  });
+  marks.forEach(m=>{const x=X(m.v);
+    g+=`<line x1="${x}" y1="11" x2="${x}" y2="26" stroke="${m.color}" stroke-width="1.4"/>`
+      +`<text x="${(x+3).toFixed(1)}" y="9" fill="${m.color}" font-size="8" font-weight="700">${m.label}</text>`;});
+  wrap.querySelector(".scale").innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${g}</svg>`;
+  gaugeFill(inp);
+}
+function drawAllGauges(){ GAUGE_IDS.forEach(drawGauge); }
+
+// embrulha o input e cria a regua. Roda uma vez, antes do primeiro applyLang().
+function initGauges(){
+  GAUGE_IDS.forEach(id=>{
+    const inp=$(id); if(!inp||inp.parentElement.classList.contains("gauge")) return;
+    const w=document.createElement("div"); w.className="gauge";
+    const sc=document.createElement("div"); sc.className="scale";
+    inp.parentElement.insertBefore(w,inp);
+    w.appendChild(sc); w.appendChild(inp); inp.classList.add("gi");
+  });
+}
+// o preenchimento acompanha o ponteiro em tempo real; a regua so e redesenhada
+// quando muda escala, agente, idade ou largura.
+document.addEventListener("input",e=>{
+  const el=e.target; if(el&&el.classList&&el.classList.contains("gi")) gaugeFill(el);
+},true);
+
+/* --- FASE DE DESPERTAR / ELIMINACAO ---------------------------------------
+   Um unico evento: no minuto escolhido o dial vai a zero e o FGF sobe para o
+   fluxo de lavagem. Dai em diante a curva desce sozinha — e o cartao
+   "Despertar previsto" (que ja existia, so nao tinha como ser acionado sem
+   carregar um cenario) passa a medir do desligamento ate o cerebro cruzar o
+   MAC-awake. Nao mexe no motor: e so um evento programado, como nos cenarios. */
+function emgEvents(){
+  const tOff=Math.min(S.emg.tOff,Math.max(1,S.durationMin-0.5));
+  return [{t:tOff,dial:0,fgf:S.emg.fgf,
+           label:"vaporizador → 0 · FGF "+nf(S.emg.fgf,1)+" L",
+           labelEn:"vaporizer → 0 · FGF "+nf(S.emg.fgf,1)+" L"}];
+}
+function syncEmg(){
+  const c=$("c-emg"); if(!c) return;
+  c.checked=S.emg.on;
+  $("emgCtl").classList.toggle("hide",!S.emg.on);
+  const mx=Math.max(2,Math.round(S.durationMin*0.9));
+  $("s-emg").max=mx; if(S.emg.tOff>mx) S.emg.tOff=mx;
+  $("s-emg").value=S.emg.tOff; $("v-emg").textContent=fmtT(S.emg.tOff);
+  $("s-emgf").value=S.emg.fgf; $("v-emgf").textContent=nf(S.emg.fgf,1)+" L/min";
+  $("l-emgT").textContent=t("emgT"); $("l-emgAt").textContent=t("emgAt"); $("l-emgF").textContent=t("emgF");
+  $("l-emgNote").innerHTML=t("emgNote");
+}
+function applyEmg(){
+  if(!S.scn) S.events = S.emg.on ? emgEvents() : [];
+  syncEmg(); run(); save();
+}
+$("c-emg").addEventListener("change",e=>{
+  S.emg.on=e.target.checked;
+  if(S.emg.on && S.scn){ S.scn=null; renderScn(); renderTeach(); }   // sai do cenario
+  applyEmg();
+});
+$("s-emg").addEventListener("input",e=>{S.emg.tOff=+e.target.value; applyEmg();});
+$("s-emgf").addEventListener("input",e=>{S.emg.fgf=+e.target.value; applyEmg();});
 
 /* --- chips de agente --- */
 function renderChips(){
   $("agentChips").innerHTML=Object.entries(AGENTS).map(([k,a])=>
-    `<button class="chip${k===S.agentKey?" on":""}" data-k="${k}" style="${k===S.agentKey?`color:${a.color};border-color:${a.color}`:""}">${agName(a)}</button>`).join("");
+    `<button class="chip${k===S.agentKey?" on":""}" data-k="${k}" style="--ac:${a.color}" `
+   +`aria-pressed="${k===S.agentKey}"><i class="sw"></i>${agName(a)}</button>`).join("");
 }
 $("agentChips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
   const old=S.scnAgent||S.agentKey; S.agentKey=b.dataset.k; const a=AGENTS[S.agentKey];
@@ -980,6 +1230,7 @@ $("agentChips").addEventListener("click",e=>{const b=e.target.closest(".chip");i
     S.events=S.events.map(ev=>ev.dial===undefined?ev:{...ev,dial:cl(ev.dial)});
     S.dial=cl(S.dial); S.scnAgent=S.agentKey;
   } else if(S.dial>a.dialMax) S.dial=a.dialDef;
+  if(S.emg.on && !S.scn) S.events=emgEvents();
   renderChips(); renderTeach(); sync(); run(); save();
 });
 
@@ -998,6 +1249,7 @@ SLIDERS.forEach(([key,sid,vid,fmt])=>{
   $(sid).addEventListener("input",e=>{
     S[key]= key==="shunt"? +e.target.value : +e.target.value;
     if(S.scn && (key==="fgf"||key==="dial"||key==="n2o")) { S.events=[]; S.scn=null; renderScn(); renderTeach(); }
+    if(S.emg.on && !S.scn){ S.events=emgEvents(); if(key==="durationMin") syncEmg(); }
     $(vid).textContent=fmt(S[key]); run(); save();
   });
 });
@@ -1007,10 +1259,11 @@ function sync(){
   SLIDERS.forEach(([key,sid,vid,fmt])=>{ $(sid).value=S[key]; $(vid).textContent=fmt(S[key]); });
   $("s-sh").value=S.shunt*1; $("v-sh").textContent=nf(S.shunt,0)+" %";
   $("s-age").value=sliderFromAge(S.ageY); $("v-age").textContent=fmtAge(S.ageY);
+  drawAllGauges();
 }
 
 $("s-age").addEventListener("input",e=>{S.ageY=ageFromSlider(+e.target.value);
-  $("v-age").textContent=fmtAge(S.ageY); run(); save();});
+  $("v-age").textContent=fmtAge(S.ageY); drawGauge("s-dial"); run(); save();});
 
 /* --- modo do eixo Y --- */
 $("ymode").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
@@ -1097,7 +1350,7 @@ function run(){
     ro(t("alv"), nf(cp.FA,2)+"%", "F_A/Fᵢ "+(cp.Fi>1e-6?nf(100*cp.FA/cp.Fi,0):"0")+"%", "var(--c-fa)"),
     ro(t("brain"), nf(cp.brain,2)+"%", nf(cp.brain/res.macAge,2)+" "+t("macOfAgent"), "var(--c-vrg)"),
     ro(t("macTot"), nf(macTot,2), S.n2o>0?t("agentN2o"):t("agentOnly"), macTot>1.5?"#ffc98a":"var(--text)"),
-    ro(t("uptake"), nf(cp.uptake,0)+" mL/min", t("vaporBlood")),
+    ro(t("uptake"), nf(cp.uptake,0)+" mL/min", cp.uptake<-0.5?t("bloodVapor"):t("vaporBlood")),
     ro(t("consumo"), nf(cp.cumMl,1)+" mL", t("liquidCum"))];
   if(a.fMet>0.01) cards.push(
     ro(t("metab"), nf(cp.cumMet,0)+" mL", nf(100*cp.cumMet/(cp.cumUp||1),0)+"% "+t("viaLiver"), "#c98b3a"));
@@ -1143,6 +1396,7 @@ function loadScn(s){
   S.scn=s.id; S.scnAgent=s.cfg.agentKey;
   Object.assign(S,{coMult:1,vaMult:1,shunt:0,n2o:0,weightKg:70,ageY:40},s.cfg);
   S.events=(s.cfg.events||[]).map(e=>({...e}));
+  S.emg.on=false; syncEmg();   // o cenario traz a sua propria programacao
   S.shunt=s.cfg.shunt||0; S.cursor=null;
   // sliders passam a refletir o estado em t = 0 (os eventos é que comandam depois)
   S.fgf=valueAt(S.events,"fgf",0,S.fgf);
@@ -1226,7 +1480,8 @@ const PRESETS=[
 ];
 function lfChips(){
   $("lfAgent").innerHTML=Object.entries(AGENTS).map(([k,a])=>
-    `<button class="chip${k===LF.agent?" on":""}" data-k="${k}" style="${k===LF.agent?`color:${a.color};border-color:${a.color}`:""}">${a.short}</button>`).join("");
+    `<button class="chip${k===LF.agent?" on":""}" data-k="${k}" style="--ac:${a.color}" `
+   +`aria-pressed="${k===LF.agent}"><i class="sw"></i>${agName(a)}</button>`).join("");
   $("lfPreset").innerHTML=PRESETS.map(p=>
     `<button class="chip${(LF.weight===p.wt&&Math.abs(LF.vc-p.vc)<0.05)?" on":""}" data-p="${p.k}" style="font-size:12.5px;padding:7px 12px">${t(p.lk)}</button>`).join("");
 }
@@ -1272,64 +1527,76 @@ function lfVessel(x,y,w,h,v,D,color,label,opts){
   return g;
 }
 
-// uma linha = um encanamento completo para um FGF
-function lfRow(Y,r,fgf,accent,mkA,tIdx,S){
+/* UMA VIA COMPLETA = UM FGF, desenhada isolada para caber numa coluna.
+   Antes as duas vias eram um SVG so, empilhado, de 660 unidades de largura —
+   o que impedia po-las lado a lado. Agora sao dois SVGs independentes e ha
+   DUAS GEOMETRIAS: normal (largura virtual 620) e compacta (500), escolhida
+   pela largura que a coluna tem. O rotulo do fluxo, o MAC cerebral e o custo
+   por hora sairam de dentro do SVG e viraram a faixa HTML acima dele (.lfhd):
+   e o que libera ~72 unidades a esquerda e torna a coluna estreita viavel. */
+function lfGeom(compact){
+  return compact
+    ? {VW:500, CK:{x:26,w:58}, AL:{x:114,w:38}, TR:168, OX:200, OW:56, OG:3, short:true}
+    : {VW:620, CK:{x:30,w:76}, AL:{x:152,w:46}, TR:216, OX:242, OW:71, OG:4, short:false};
+}
+const LF_ROW_H=152;
+
+function lfLane(which,r,fgf,accent,tIdx,S,compact){
   const p=r.points[Math.min(tIdx,r.points.length-1)], D=Math.max(LF.dial,0.01);
+  const G=lfGeom(compact), CK=G.CK, AL=G.AL, TR=G.TR, OX=G.OX, OW=G.OW, OG=G.OG, ON=5;
+  const OEND=OX+ON*OW+(ON-1)*OG;
+  const TOP=36,H=58,BASE=TOP+H,ART=20,VEN=BASE+34;
   const VA=r.phys.VA, Q=r.phys.Q, reb=Math.max(0,1-fgf/Math.max(fgf,VA));
   const waste=Math.max(0,fgf-(p.uptake||0)/1000), rebL=reb*VA;
   const sc=v=>+(v*S).toFixed(2);
+  const MK=id=>id+"_"+which;            // ids de marcador nao podem colidir entre os dois SVGs
   const T=(x,y,txt,fill,size,anchor,weight)=>
-    `<text x="${sc(x)}" y="${sc(Y+y)}" fill="${fill}" font-size="${sc(size).toFixed(1)}" `
+    `<text x="${sc(x)}" y="${sc(y)}" fill="${fill}" font-size="${sc(size).toFixed(1)}" `
     +`text-anchor="${anchor||"start"}"${weight?` font-weight="${weight}"`:""}>${txt}</text>`;
-  const P=(x,y)=>`${sc(x)} ${sc(Y+y)}`;
-  const CK={x:78,w:76}, AL={x:200,w:46}, TOP=36, H=58, BASE=TOP+H, ART=20, VEN=BASE+34;
-  const OX=282, OW=71, OG=4, ON=5, OEND=OX+ON*OW+(ON-1)*OG;
+  const P=(x,y)=>`${sc(x)} ${sc(y)}`;
   let g="";
 
-  /* rótulo do fluxo */
-  g+=T(6,TOP+12,`<tspan font-weight="700">${nf(fgf,2)}</tspan>`,accent,13);
-  g+=T(6,TOP+24,"L/min "+t("lfFresh"),"var(--muted)",8);
-
-  /* gás fresco entra no circuito */
-  g+=lfPipe(`M${P(50,TOP+34)} L${P(CK.x-2,TOP+34)}`,accent,fgf,3.2,mkA);
+  /* gas fresco entra no circuito */
+  g+=lfPipe(`M${P(0,TOP+34)} L${P(CK.x-2,TOP+34)}`,accent,fgf,3.2,MK("mkF"));
   /* descarte sai por cima */
-  g+=lfPipe(`M${P(CK.x+16,TOP)} L${P(CK.x+16,8)}`,LFC.waste,waste,2.6,"mkW");
+  g+=lfPipe(`M${P(CK.x+16,TOP)} L${P(CK.x+16,8)}`,LFC.waste,waste,2.6,MK("mkW"));
   g+=T(CK.x+22,10,t("lfWaste"),"var(--muted)",7.5);
 
   /* circuito */
-  g+=lfVessel(sc(CK.x),sc(Y+TOP),sc(CK.w),sc(H),p.Fi,D,accent,t("lfCkt"));
+  g+=lfVessel(sc(CK.x),sc(TOP),sc(CK.w),sc(H),p.Fi,D,accent,t("lfCkt"));
 
-  /* inspiração: circuito → alvéolo */
-  g+=lfPipe(`M${P(CK.x+CK.w+1,TOP+16)} L${P(AL.x-3,TOP+16)}`,LFC.vent,VA,2.8,"mkV");
+  /* inspiracao: circuito -> alveolo */
+  g+=lfPipe(`M${P(CK.x+CK.w+1,TOP+16)} L${P(AL.x-3,TOP+16)}`,LFC.vent,VA,2.8,MK("mkV"));
   g+=T((CK.x+CK.w+AL.x)/2,TOP+11,"V̇<tspan baseline-shift='sub' font-size='"+sc(5.5).toFixed(1)+"'>A</tspan>","var(--muted)",8,"middle");
 
-  /* REINALAÇÃO: volta do alvéolo para o circuito, por cima. É a alça do baixo fluxo. */
+  /* REINALACAO: volta do alveolo para o circuito, por cima. E a alca do baixo fluxo. */
   if(reb>0.015) g+=lfPipe(`M${P(AL.x+10,TOP)} L${P(AL.x+10,20)} L${P(CK.x+CK.w-14,20)} L${P(CK.x+CK.w-14,TOP-2)}`,
-            accent,rebL,2.4,mkA);
+            accent,rebL,2.4,MK("mkF"));
   g+=T((AL.x+CK.x+CK.w)/2,17,
       t("lfReb")+` <tspan fill="${accent}" font-weight="700">${nf(100*reb,0)}%</tspan>`,"var(--muted)",7.5,"middle");
 
-  /* alvéolo */
-  g+=lfVessel(sc(AL.x),sc(Y+TOP),sc(AL.w),sc(H),p.FA,D,"var(--c-fa)",t("lfAlv"),{rx:12});
+  /* alveolo */
+  g+=lfVessel(sc(AL.x),sc(TOP),sc(AL.w),sc(H),p.FA,D,"var(--c-fa)",t("lfAlv"),{rx:12});
 
-  /* arterial: alvéolo → cada compartimento */
-  g+=lfPipe(`M${P(AL.x+AL.w+1,TOP+10)} L${P(266,TOP+10)} L${P(266,ART)} L${P(OEND-OW/2,ART)}`,LFC.art,Q,2.4);
-  g+=T(270,ART-5,t("lfArt"),LFC.art,7.5);
+  /* arterial: alveolo -> tronco -> compartimentos */
+  g+=lfPipe(`M${P(AL.x+AL.w+1,TOP+10)} L${P(TR,TOP+10)} L${P(TR,ART)} L${P(OEND-OW/2,ART)}`,LFC.art,Q,2.4);
+  g+=T(TR+4,ART-5,t("lfArt"),LFC.art,7.5);
 
-  /* compartimentos */
+  /* compartimentos (rotulos curtos na geometria compacta, senao estouram a barra) */
   const ORG=[[p.brain,"var(--c-vrg)",t("lfBrain")],[p.vrg,"var(--c-vis)",t("lfVisc")],
-             [p.muscle,"var(--c-mus)",t("lfMus")],[p.fatV,"var(--c-fatv)",t("lfFatV")],
-             [p.fatP,"var(--c-fat)",t("lfFatP")]];
+             [p.muscle,"var(--c-mus)",t("lfMus")],
+             [p.fatV,"var(--c-fatv)",t(G.short?"lfFatVs":"lfFatV")],
+             [p.fatP,"var(--c-fat)", t(G.short?"lfFatPs":"lfFatP")]];
   ORG.forEach(([v,c,l],i)=>{
     const X=OX+i*(OW+OG), cx=X+OW/2;
-    g+=`<path d="M${P(cx,ART)} L${P(cx,TOP-3)}" stroke="${LFC.art}" stroke-width="${sc(1.7)}" fill="none" opacity=".65" marker-end="url(#mkA)"/>`;
+    g+=`<path d="M${P(cx,ART)} L${P(cx,TOP-3)}" stroke="${LFC.art}" stroke-width="${sc(1.7)}" fill="none" opacity=".65" marker-end="url(#${MK("mkA")})"/>`;
     g+=`<path d="M${P(cx,BASE)} L${P(cx,VEN)}" stroke="${LFC.ven}" stroke-width="${sc(1.5)}" fill="none" opacity=".35"/>`;
-    g+=lfVessel(sc(X),sc(Y+TOP),sc(OW),sc(H),v,D,c,l);
+    g+=lfVessel(sc(X),sc(TOP),sc(OW),sc(H),v,D,c,l);
   });
 
-  /* venoso: compartimentos → alvéolo */
-  g+=lfPipe(`M${P(OEND-OW/2,VEN)} L${P(266,VEN)} L${P(266,TOP+42)} L${P(AL.x+AL.w+1,TOP+42)}`,LFC.ven,Q,2.2,"mkN");
-  g+=T(270,VEN+9,t("lfVen"),LFC.ven,7.5);
+  /* venoso: compartimentos -> alveolo */
+  g+=lfPipe(`M${P(OEND-OW/2,VEN)} L${P(TR,VEN)} L${P(TR,TOP+42)} L${P(AL.x+AL.w+1,TOP+42)}`,LFC.ven,Q,2.2,MK("mkN"));
+  g+=T(TR+4,VEN+9,t("lfVen"),LFC.ven,7.5);
 
   /* 1 MAC */
   const macNow=macAtAge(LF.agent,LF.ageY), mf=macNow/D;
@@ -1337,43 +1604,62 @@ function lfRow(Y,r,fgf,accent,mkA,tIdx,S){
     const my=TOP+2.5+(H-5)*(1-Math.min(1,mf));
     g+=`<path d="M${P(OX-3,my)} L${P(OEND+2,my)}" stroke="#ffc98a" stroke-width="${sc(1.1)}" `
       +`stroke-dasharray="${sc(5)} ${sc(3)}" fill="none" opacity=".8"/>`;
-    g+=T(OX-5,my+3,"1 MAC","#ffc98a",7.5,"end");
+    g+=T(OX-6,my+3,"1 MAC","#ffc98a",7.5,"end");
   }
-
-  /* resumo da linha */
-  const mac=p.brain/macNow, ch=(p.t>0.01)?(p.cumMl/p.t*60*agentPrice(LF.agent)):0, on=mac>=1;
-  g+=`<rect x="${sc(4)}" y="${sc(Y+TOP+40)}" width="${sc(68)}" height="${sc(34)}" rx="${sc(5)}" `
-    +`fill="${on?'rgba(255,201,138,.12)':'#0e1418'}" stroke="${on?'#ffc98a':accent}" stroke-width="${sc(0.9)}" opacity=".9"/>`;
-  g+=T(38,TOP+54,nf(mac,2),on?"#ffc98a":"var(--text)",13,"middle",700);
-  g+=T(38,TOP+64,t("lfMac"),"var(--muted)",7,"middle");
-  g+=T(38,BASE+30,money(ch)+"/"+t("hour"),"var(--muted)",8,"middle");
   return g;
 }
 
-function lfStageSvg(W,tIdx){
-  const S=W/660, ROW=152;
-  let g=lfRow(0,LF.runs[0],LF.fgfA,LFC.a,"mkFa",tIdx,S);
-  g+=`<line x1="0" y1="${(ROW*S).toFixed(1)}" x2="${W}" y2="${(ROW*S).toFixed(1)}" stroke="#1c242c"/>`;
-  g+=lfRow(ROW+6,LF.runs[1],LF.fgfB,LFC.b,"mkFb",tIdx,S);
-  return {svg:g,h:+(2*ROW*S+14*S).toFixed(1)};
+/* faixa HTML acima de cada esquema: fluxo, MAC cerebral e custo/hora.
+   Fora do SVG ela nao encolhe com a escala — fica legivel ate na coluna estreita. */
+function lfHead(which){
+  const r=LF.runs[which], fgf=which?LF.fgfB:LF.fgfA, accent=which?LFC.b:LFC.a;
+  const p=r.points[Math.min(LF.t,r.points.length-1)];
+  const macNow=macAtAge(LF.agent,LF.ageY), mac=p.brain/macNow, on=mac>=1;
+  const ch=(p.t>0.01)?(p.cumMl/p.t*60*agentPrice(LF.agent)):0;
+  return `<div><span class="big" style="color:${accent}">${nf(fgf,2)}</span>`
+       + `<span class="lbl"> L/min · ${t("lfFresh")}</span></div>`
+       + `<div style="text-align:right">`
+       + `<span class="big" style="color:${on?"#ffc98a":"var(--text)"}">${nf(mac,2)}</span>`
+       + `<span class="lbl"> ${t("lfMac")}</span>`
+       + `<div class="lbl" style="margin-top:3px">${money(ch)}/${t("hour")}</div></div>`;
 }
+
+function lfLaneRender(which,tIdx){
+  const box=$(which?"lfStageB":"lfStageA");
+  const avail=Math.round(box.parentElement?(box.parentElement.clientWidth||620):620);
+  const compact=avail<620;                    // coluna estreita -> geometria compacta
+  const G=lfGeom(compact);
+  const W=Math.max(compact?470:560,avail);    // abaixo disso o esquema rola, nao encolhe mais
+  const S=W/G.VW, h=+(LF_ROW_H*S+6).toFixed(1);
+  const accent=which?LFC.b:LFC.a;
+  // markerUnits="userSpaceOnUse": SEM isto a cabeca da seta escala com o
+  // stroke-width e vira um triangulo gigante quando o fluxo e alto.
+  const defs=[["mkF",accent],["mkA",LFC.art],["mkN",LFC.ven],["mkW",LFC.waste],["mkV",LFC.vent]]
+    .map(([id,c])=>`<marker id="${id}_${which}" markerWidth="8" markerHeight="8" refX="6.5" refY="4" `
+      +`orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.6 L8,4 L0,7.4 Z" fill="${c}"/></marker>`).join("");
+  $(which?"lfHdB":"lfHdA").innerHTML=lfHead(which);
+  box.innerHTML=`<svg width="${W}" height="${h}" viewBox="0 0 ${W} ${h}" style="display:block">`
+    +`<defs>${defs}</defs>`
+    +lfLane(which,LF.runs[which],which?LF.fgfB:LF.fgfA,accent,tIdx,S,compact)+`</svg>`;
+}
+
+/* EMPILHADO x LADO A LADO — quem decide e quem da a aula. No lado a lado a
+   pagina alarga (.wrap.wide); abaixo de 760 px o CSS volta a empilhar sozinho. */
+LF.layout=(()=>{try{return localStorage.getItem("gcLfLayout")==="split"?"split":"stack";}catch(e){return "stack";}})();
+function lfApplyLayout(){
+  const split=LF.layout==="split", vis=!$("tab-lf").classList.contains("hide");
+  $("lfSplit").classList.toggle("split",split);
+  [...$("lfLayout").children].forEach(b=>b.classList.toggle("on",(b.dataset.v==="split")===split));
+  document.querySelector(".wrap").classList.toggle("wide",split&&vis);
+}
+$("lfLayout").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  LF.layout=b.dataset.v; try{localStorage.setItem("gcLfLayout",LF.layout);}catch(err){}
+  lfApplyLayout(); lfRender(); drawAllGauges();});
 
 function lfRender(){
   if(!LF.runs) lfRun();
-  const el=$("lfStage");
-  // abaixo de 560 o texto do esquema ficaria ilegível — mantém a largura e deixa rolar
-  const W=Math.max(560,el.parentElement?(el.parentElement.clientWidth||660):(el.clientWidth||660));
   const tIdx=LF.t;
-  const St=lfStageSvg(W,tIdx);
-  el.innerHTML=`<svg width="${W}" height="${St.h}" viewBox="0 0 ${W} ${St.h}" style="display:block">
-    <defs>
-      <!-- markerUnits="userSpaceOnUse": SEM isto a cabeça escala com stroke-width
-           e vira um triângulo gigante quando o fluxo é alto. Erro já cometido antes. -->
-      ${[["mkFa",LFC.a],["mkFb",LFC.b],["mkA",LFC.art],["mkN",LFC.ven],["mkW",LFC.waste],["mkV",LFC.vent]]
-        .map(([id,c])=>`<marker id="${id}" markerWidth="8" markerHeight="8" refX="6.5" refY="4"
-           orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.6 L8,4 L0,7.4 Z" fill="${c}"/></marker>`).join("")}
-    </defs>
-    ${St.svg}</svg>`;
+  lfLaneRender(0,tIdx); lfLaneRender(1,tIdx);
   const pa=LF.runs[0].points[Math.min(tIdx,LF.runs[0].points.length-1)];
   const pb=LF.runs[1].points[Math.min(tIdx,LF.runs[1].points.length-1)];
   $("lfClock").textContent="t = "+fmtT(pa.t);
@@ -1423,7 +1709,8 @@ function lfSync(){
   $("s-lfvc").value=LF.vc; $("v-lfvc").textContent=nf(LF.vc,1)+" L";
   $("s-lfdur").value=LF.dur; $("v-lfdur").textContent=fmtT(LF.dur);
   $("s-lfage").value=sliderFromAge(LF.ageY); $("v-lfage").textContent=fmtAge(LF.ageY);
-  $("lf-l-dial").textContent=t("vap")+" — "+AGENTS[LF.agent].label;
+  $("lf-l-dial").textContent=t("vap")+" — "+agName(AGENTS[LF.agent]);
+  drawAllGauges();
 }
 $("lfAgent").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
   LF.agent=b.dataset.k; const a=AGENTS[LF.agent];
@@ -1470,8 +1757,10 @@ function lfTick(now){
 let refDone=false;
 function renderRef(){
   if(refDone) return; refDone=true;
-  const rows=[...Object.entries(AGENTS).map(([k,a])=>[agName(a),a.lbg,a.lBrain,a.lMuscle,a.lFat,a.mac+" %",a.macAwake+" %",a.pvap]),
-              [t("agN2o"),N2O.lbg,N2O.lBrain,N2O.lMuscle,N2O.lFat,N2O.mac+" %",N2O.macAwake+" %",N2O.pvap]];
+  // a tarja repete a cor padronizada do agente, para amarrar tabela e botao
+  const sw=c=>`<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c};margin-right:7px;vertical-align:middle"></span>`;
+  const rows=[...Object.entries(AGENTS).map(([k,a])=>[sw(a.color)+agName(a),a.lbg,a.lBrain,a.lMuscle,a.lFat,a.mac+" %",a.macAwake+" %",a.pvap]),
+              [sw(N2O.color)+t("agN2o"),N2O.lbg,N2O.lBrain,N2O.lMuscle,N2O.lFat,N2O.mac+" %",N2O.macAwake+" %",N2O.pvap]];
   $("refTable").innerHTML=`<thead><tr><th>${t("rTag")}</th><th>λ ${t("hBG")}</th><th>λ ${t("hBr")}</th>
     <th>λ ${t("hMu")}</th><th>λ ${t("hFa")}</th><th>MAC</th><th>MAC-awake</th><th>${t("hVap")}</th></tr></thead><tbody>`+
     rows.map(r=>`<tr>${r.map((c,i)=>`<td${i===0?' style="color:var(--text);font-weight:600"':""}>${c}</td>`).join("")}</tr>`).join("")+"</tbody>";
@@ -1522,11 +1811,13 @@ function applyLang(){
   document.querySelectorAll("#tabs .tab").forEach(b=>{b.textContent=t(TAB[b.dataset.tab]);});
   // simulador
   setTxt("#s-fgf",""); const L=(id,k)=>{const e=$(id); if(e)e.textContent=t(k);};
-  const lab=(sliderId,k)=>{const s=$(sliderId); if(!s)return; const sp=s.parentElement.querySelector(".sl-l"); if(sp)sp.innerHTML=t(k);};
+  // NB: os instrumentos ganharam um embrulho .gauge — o rotulo vive no .sl, nao no pai direto
+  const lab=(sliderId,k)=>{const s=$(sliderId); if(!s)return; const b=s.closest(".sl"); const sp=b&&b.querySelector(".sl-l"); if(sp)sp.innerHTML=t(k);};
   lab("s-fgf","fgf"); lab("s-n2o","n2o"); lab("s-dur","dur");
   lab("s-wt","weight"); lab("s-co","co"); lab("s-va","va"); lab("s-sh","shunt"); lab("s-age","age");
   const adv=$("advBox"); if(adv) adv.querySelector("summary").textContent=t("patient");
-  $("l-dial").textContent=t("vap")+" — "+AGENTS[S.agentKey].label;
+  $("l-dial").textContent=t("vap")+" — "+agName(AGENTS[S.agentKey]);
+  syncEmg();
   const ym=$("ymode").children; ym[0].innerHTML=t("yPct"); ym[1].innerHTML=t("yNorm"); ym[2].innerHTML=t("yMac");
   // blocos estáticos marcados com data-i18n (aba Referência, sobretudo)
   document.querySelectorAll("[data-i18n]").forEach(e=>{ const k=e.dataset.i18n;
@@ -1535,13 +1826,15 @@ function applyLang(){
   // baixo fluxo
   setTxt("#tab-lf .teach",t("lfIntro"),true);
   $("lf-l-dial").textContent=t("lfDial");
+  $("lf-l-layout").textContent=t("lfLayout");
+  { const ls=$("lfLayout").children; ls[0].textContent=t("lfStack"); ls[1].textContent=t("lfSide"); }
   $("tab-lf").querySelectorAll(".sl-l").forEach(e=>{});
   const lfL=(id,k)=>{const e=$(id); if(e)e.textContent=t(k);};
-  $("s-lfA").parentElement.querySelector(".sl-l").textContent=t("lfLeft");
-  $("s-lfB").parentElement.querySelector(".sl-l").textContent=t("lfRight");
-  $("s-lfwt").parentElement.querySelector(".sl-l").textContent=t("weight");
-  $("s-lfage").parentElement.querySelector(".sl-l").textContent=t("age");
-  $("s-lfvc").parentElement.querySelector(".sl-l").textContent=t("lfVc");
+  $("s-lfA").closest(".sl").querySelector(".sl-l").textContent=t("lfLeft");
+  $("s-lfB").closest(".sl").querySelector(".sl-l").textContent=t("lfRight");
+  $("s-lfwt").closest(".sl").querySelector(".sl-l").textContent=t("weight");
+  $("s-lfage").closest(".sl").querySelector(".sl-l").textContent=t("age");
+  $("s-lfvc").closest(".sl").querySelector(".sl-l").textContent=t("lfVc");
   lfL("lf-l-dur","dur"); lfL("lf-l-price","lfPrice");
   $("lfPatientBox").querySelector("summary").textContent=t("lfPatient");
   $("lfPlay").textContent=LF.playing?t("lfPause"):t("lfPlay");
@@ -1557,10 +1850,14 @@ $("lf-price").addEventListener("input",e=>{const v=parseFloat(e.target.value);
 /* =========================================================================
    10. BOOT
    ========================================================================= */
-renderChips(); renderScn(); renderTeach(); sync(); run(); applyLang();
+initGauges();
+renderChips(); renderScn(); renderTeach(); sync(); syncEmg(); run(); lfApplyLayout(); applyLang();
+drawAllGauges();
 bindCursor($("chart"),()=>LAST.points);
 let rt; window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{run();
-  if(!$("tab-cmp").classList.contains("hide"))renderCmp();},120);});
+  if(!$("tab-cmp").classList.contains("hide"))renderCmp();
+  if(!$("tab-lf").classList.contains("hide"))lfRender();
+  drawAllGauges();},120);});
 
 /* -------------------------------------------------------------------------
    MANIFEST E SERVICE WORKER — versão hospedada (gerada por build_site.py).
