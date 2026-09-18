@@ -1,7 +1,7 @@
 /* GasCurve — service worker
    Estratégia: cache-first para o casco do app, com atualização em segundo plano.
    Trocar CACHE ao publicar versão nova: é o que faz o aparelho baixar de novo.  */
-const CACHE = "gascurve-v3.12";
+const CACHE = "gascurve-v3.13";
 const ASSETS = ["./","./index.html","./manifest.json",
                 "./icon-180.png","./icon-192.png","./icon-512.png","./icon-maskable-512.png"];
 

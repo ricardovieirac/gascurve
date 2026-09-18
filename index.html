@@ -178,7 +178,7 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;justify-content:space-between">
       <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
       <h1>GasCurve <span style="font-weight:400;color:var(--muted);font-size:15px">· cinética dos anestésicos inalatórios</span></h1>
-      <span class="badge">v3.12</span>
+      <span class="badge">v3.13</span>
       </div>
       <div class="seg" id="langSeg" style="flex:0 0 auto">
         <button data-l="pt">PT</button><button data-l="en">EN</button>
@@ -204,7 +204,7 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 
     <div class="card">
       <div class="sl"><div class="sl-h"><span class="sl-l">Fluxo de gás fresco (FGF)</span><span class="sl-v" id="v-fgf"></span></div>
-        <input type="range" id="s-fgf" min="0.3" max="10" step="0.1"></div>
+        <input type="range" id="s-fgf" min="0" max="1000" step="1"></div>
       <div class="sl"><div class="sl-h"><span class="sl-l" id="l-dial">Vaporizador</span><span class="sl-v" id="v-dial"></span></div>
         <input type="range" id="s-dial" min="0" max="8" step="0.1"></div>
       <div class="sl"><div class="sl-h"><span class="sl-l">Óxido nitroso (N₂O)</span><span class="sl-v" id="v-n2o"></span></div>
@@ -301,13 +301,13 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     <div class="lfsplit" id="lfSplit">
       <div class="card lfcol">
         <div class="sl" style="margin:0"><div class="sl-h"><span class="sl-l" style="color:var(--c-fa)">FGF esquerda</span><span class="sl-v" id="v-lfA"></span></div>
-          <input type="range" id="s-lfA" min="0.25" max="10" step="0.05"></div>
+          <input type="range" id="s-lfA" min="0" max="1000" step="1"></div>
         <div class="lfhd" id="lfHdA"></div>
         <div class="lfstage"><div id="lfStageA"></div></div>
       </div>
       <div class="card lfcol">
         <div class="sl" style="margin:0"><div class="sl-h"><span class="sl-l" style="color:var(--c-fatv)">FGF direita</span><span class="sl-v" id="v-lfB"></span></div>
-          <input type="range" id="s-lfB" min="0.25" max="10" step="0.05"></div>
+          <input type="range" id="s-lfB" min="0" max="1000" step="1"></div>
         <div class="lfhd" id="lfHdB"></div>
         <div class="lfstage"><div id="lfStageB"></div></div>
       </div>
@@ -338,7 +338,7 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
   <section id="tab-cmp" class="hide">
     <div class="card">
       <div class="sl"><div class="sl-h"><span class="sl-l">FGF</span><span class="sl-v" id="v-cfgf"></span></div>
-        <input type="range" id="s-cfgf" min="0.3" max="10" step="0.1" value="8"></div>
+        <input type="range" id="s-cfgf" min="0" max="1000" step="1"></div>
       <div class="sl"><div class="sl-h"><span class="sl-l">Duração</span><span class="sl-v" id="v-cdur"></span></div>
         <input type="range" id="s-cdur" min="10" max="360" step="5" value="60"></div>
       <div class="sl"><div class="sl-h"><span class="sl-l">Débito cardíaco</span><span class="sl-v" id="v-cco"></span></div>
@@ -481,8 +481,8 @@ const I18N={
   emgT:"Despertar — desligar o vaporizador",emgAt:"Desligar o vaporizador em",emgF:"FGF de lavagem",
   emgNote:"O vaporizador vai a zero no minuto escolhido e o circuito passa a ser lavado com o fluxo indicado. Daí em diante o gradiente se inverte: o agente volta dos tecidos para o alvéolo, e o que governa o despertar deixa de ser a solubilidade e passa a ser <b>quanto tempo a gordura teve para carregar</b>. O cartão <b>Despertar previsto</b> mede do desligamento até o cérebro cruzar o MAC-awake; no modo <b>MAC</b> do gráfico esse limiar é a linha tracejada. Aumente a duração da simulação para ver a cauda.",
   bloodVapor:"do sangue de volta ao alvéolo",
-  gLow:"BAIXO FLUXO",gMinF:"MÍNIMO",
-  gTipFgf:"Faixas marcadas na régua: ≤ 1 L/min baixo fluxo · ≤ 0,5 mínimo · ≤ 0,35 metabólico.",
+  gLow:"BAIXO FLUXO",gMinF:"MÍNIMO",gMet:"METABÓLICO",
+  gTipFgf:"A régua não é linear: metade do curso cobre 0,25–1 L/min, em passos de 0,05, para dar como titular baixo fluxo. Faixas: ≤ 1 L/min baixo fluxo · ≤ 0,5 mínimo · ≤ 0,35 metabólico — limiares clássicos do adulto; na criança o piso é menor e quem o define é a máquina (ver a aba Baixo fluxo).",
   gTipDial:"A marca 1 MAC é a concentração equivalente a 1 MAC nesta idade — não é a dose que chega ao paciente: o que o dial entrega depende do FGF e da reinalação.",
   lfLayout:"Disposição",lfStack:"⬍ empilhado",lfSide:"⬌ lado a lado",
   lfFatVs:"PERIVISC",lfFatPs:"PERIFÉR",
@@ -592,8 +592,8 @@ const I18N={
   emgT:"Emergence — turn the vaporizer off",emgAt:"Turn the vaporizer off at",emgF:"Washout FGF",
   emgNote:"The vaporizer goes to zero at the chosen minute and the circuit is then washed out at the flow set here. From that point the gradient reverses: agent flows back from the tissues into the alveoli, and what governs awakening is no longer solubility but <b>how long the fat had to load</b>. The <b>Predicted awakening</b> card measures from shut-off until the brain crosses MAC-awake; in the chart's <b>MAC</b> mode that threshold is the dashed line. Increase the simulation length to see the tail.",
   bloodVapor:"from blood back into the alveoli",
-  gLow:"LOW FLOW",gMinF:"MINIMAL",
-  gTipFgf:"Bands marked on the scale: ≤ 1 L·min⁻¹ low flow · ≤ 0.5 minimal · ≤ 0.35 metabolic.",
+  gLow:"LOW FLOW",gMinF:"MINIMAL",gMet:"METABOLIC",
+  gTipFgf:"The scale is not linear: half the travel covers 0.25–1 L·min⁻¹, in steps of 0.05, so that low flow can actually be titrated. Bands: ≤ 1 L·min⁻¹ low flow · ≤ 0.5 minimal · ≤ 0.35 metabolic — the classic adult thresholds; in a child the floor is lower and the machine is what sets it (see the Low flow tab).",
   gTipDial:"The 1 MAC mark is the concentration equal to 1 MAC at this age — not the dose reaching the patient: what the dial delivers depends on FGF and rebreathing.",
   lfLayout:"Layout",lfStack:"⬍ stacked",lfSide:"⬌ side by side",
   lfFatVs:"PERIVISC",lfFatPs:"PERIPH",
@@ -1103,18 +1103,56 @@ $("tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)re
    senao a regua desalinha do ponteiro — o thumb nativo anda de NEEDLE/2 ate
    W-NEEDLE/2, e e esse o mapeamento que X() reproduz. */
 const NEEDLE=16;
+
+/* --- ESCALA NAO LINEAR DO FGF ---------------------------------------------
+   Numa regua linear de 0,25 a 10 L/min, a faixa que realmente se titula
+   (0,25–1) ocupava 7% do curso: era impossivel parar em 0,4. Agora METADE do
+   curso cobre 0,25–1 L/min e a outra metade cobre 1–10 — a mesma ideia do tubo
+   do rotametro, que tem a escala mais aberta embaixo. Baixar o teto para 6
+   resolveria muito menos e custaria o wash-in e a lavagem do despertar.
+   O input passa a trabalhar em POSICAO (0–1000), como o slider de idade ja
+   fazia; fgfFromPos/fgfToPos sao o par de conversao, e a quantizacao e mais
+   fina embaixo: 0,05 L/min (50 mL/min) abaixo de 1, 0,1 acima. */
+const FGF_MIN=0.25, FGF_BRK=1, FGF_MAX=10, FGF_SPLIT=0.5;
+function fgfFromPos(p){
+  const f=Math.max(0,Math.min(1,p/1000));
+  const v = f<=FGF_SPLIT
+    ? FGF_MIN+(FGF_BRK-FGF_MIN)*(f/FGF_SPLIT)
+    : FGF_BRK+(FGF_MAX-FGF_BRK)*((f-FGF_SPLIT)/(1-FGF_SPLIT));
+  return v<FGF_BRK-1e-9 ? +(Math.round(v/0.05)*0.05).toFixed(2)
+                        : +(Math.round(v/0.1)*0.1).toFixed(1);
+}
+function fgfToPos(v){
+  v=Math.max(FGF_MIN,Math.min(FGF_MAX,+v||FGF_MIN));
+  const f = v<=FGF_BRK
+    ? FGF_SPLIT*(v-FGF_MIN)/(FGF_BRK-FGF_MIN)
+    : FGF_SPLIT+(1-FGF_SPLIT)*(v-FGF_BRK)/(FGF_MAX-FGF_BRK);
+  return Math.round(f*1000);
+}
+const FGFSCALE={fromPos:fgfFromPos,toPos:fgfToPos,
+  // uma seta do teclado = um detente (0,05 abaixo de 1 L/min, 0,1 acima). Sem
+  // isto cada tecla andaria 1 unidade de POSICAO e o valor nao mudaria.
+  step:(v,d)=>{const s=((d<0)? v<=FGF_BRK+1e-9 : v<FGF_BRK-1e-9)?0.05:0.1;
+    return Math.max(FGF_MIN,Math.min(FGF_MAX,+(v+d*s).toFixed(2)));}};
+const fgfFmt=v=>nf(v,v<1?2:1)+" L/min";        // 0,45 L/min · 2,0 L/min
+// traços da régua: de 0,05 em 0,05 embaixo, de 0,5 em 0,5 em cima
+const FGF_MINOR=(()=>{const a=[];
+  for(let v=0.25;v<1-1e-9;v=+(v+0.05).toFixed(2)) a.push(v);
+  for(let v=1;v<=10+1e-9;v=+(v+0.5).toFixed(1)) a.push(v);
+  return a;})();
 const GAUGE_IDS=["s-fgf","s-cfgf","s-dial","s-n2o","s-lfA","s-lfB","s-lfdial"];
 const G_BANDS=[  // baixo fluxo / minimo / metabolico (Baum; revisao do Ricardo)
   {to:1,   fill:"rgba(120,200,255,.11)", label:"gLow"},
   {to:0.5, fill:"rgba(120,200,255,.17)", label:"gMinF"},
-  {to:0.35,fill:"rgba(120,200,255,.25)"}];
+  {to:0.35,fill:"rgba(120,200,255,.25)", label:"gMet"}];
 const G_BANDTX="#8fb9d6";
 
 function gaugeSpec(id){
   if(id==="s-fgf"||id==="s-cfgf"||id==="s-lfA"||id==="s-lfB")
     return {color: id==="s-lfA"?LFC.a : id==="s-lfB"?LFC.b : "#3fb84f",
-            minor:0.5, major:[0.5,1,2,3,4,5,6,7,8,9,10], majorNarrow:[0.5,1,2,4,6,8,10],
-            fmt:v=>nf(v,v<1?1:0),
+            scale:FGFSCALE, minorList:FGF_MINOR,
+            major:[0.25,0.5,0.75,1,2,4,6,8,10], majorNarrow:[0.25,0.5,1,2,4,6,8,10],
+            fmt:v=>v<1?nf(v,2):nf(v,0),
             tint:v=>(v<=1?G_BANDTX:"var(--muted)"), bands:G_BANDS, tip:"gTipFgf"};
   if(id==="s-dial"||id==="s-lfdial"){
     const sim=id==="s-dial", k=sim?S.agentKey:LF.agent, a=AGENTS[k], mx=a.dialMax;
@@ -1130,7 +1168,7 @@ function gaugeSpec(id){
 
 function gaugeFill(inp){
   const W=inp.clientWidth; if(!W) return;
-  const min=+inp.min, max=+inp.max, v=+inp.value;
+  const min=+inp.min, max=+inp.max, v=+inp.value;   // ja em posicao quando ha escala
   const x=NEEDLE/2+(W-NEEDLE)*(max>min?(v-min)/(max-min):0);
   inp.style.setProperty("--p",x.toFixed(1)+"px");
 }
@@ -1141,32 +1179,39 @@ function drawGauge(id){
   const sp=gaugeSpec(id); if(!sp) return;
   const W=inp.clientWidth; if(W<60) return;          // aba escondida: desenha ao aparecer
   const min=+inp.min, max=+inp.max, span=W-NEEDLE, H=26;
-  const X=v=>+(NEEDLE/2+span*(Math.max(min,Math.min(max,v))-min)/(max-min)).toFixed(2);
+  // com escala nao linear o input anda em POSICAO: o valor passa por toPos antes
+  const toPos=v=>sp.scale?sp.scale.toPos(v):v;
+  const X=v=>+(NEEDLE/2+span*(Math.max(min,Math.min(max,toPos(v)))-min)/(max-min)).toFixed(2);
   inp.style.setProperty("--ic",sp.color);
   if(sp.tip) inp.title=t(sp.tip);
   const marks=(sp.marks||[]).filter(m=>m.v>=min&&m.v<=max);
   let g="";
   (sp.bands||[]).forEach(b=>{
-    if(b.to<=min) return;
-    const x0=X(min), x1=X(b.to), w=x1-x0; if(w<2) return;
+    const lo=sp.scale?FGF_MIN:min;
+    if(b.to<=lo) return;
+    const x0=X(lo), x1=X(b.to), w=x1-x0; if(w<2) return;
     g+=`<rect x="${x0}" y="13" width="${w.toFixed(2)}" height="13" fill="${b.fill}"/>`;
-    if(b.label && w>=58)
-      g+=`<text x="${(x0+4).toFixed(1)}" y="23" fill="${G_BANDTX}" font-size="7" letter-spacing=".3">${t(b.label)}</text>`;
+    // so rotula se couber de fato: ~4,5 px por caractere a 7 px de corpo
+    const lb=b.label?t(b.label):"";
+    if(lb && w>=lb.length*4.5+6)
+      g+=`<text x="${(x1-4).toFixed(1)}" y="23" fill="${G_BANDTX}" font-size="7" letter-spacing=".3" text-anchor="end" paint-order="stroke" stroke="#161d24" stroke-width="2.5" stroke-linejoin="round">${lb}</text>`;
   });
-  const first=Math.ceil((min-1e-9)/sp.minor)*sp.minor;
-  for(let v=first;v<=max+1e-9;v=+(v+sp.minor).toFixed(6)){
+  let ticks=sp.minorList;
+  if(!ticks){ ticks=[]; const first=Math.ceil((min-1e-9)/sp.minor)*sp.minor;
+    for(let v=first;v<=max+1e-9;v=+(v+sp.minor).toFixed(6)) ticks.push(v); }
+  ticks.forEach(v=>{
     const maj=sp.major.some(m=>Math.abs(m-v)<1e-6), x=X(v);
     g+=`<line x1="${x}" y1="${maj?13:17}" x2="${x}" y2="24" stroke="${maj?"#7f8f9c":"#3f4c58"}" stroke-width="${maj?1.2:1}"/>`;
-  }
+  });
   ((W<430&&sp.majorNarrow)?sp.majorNarrow:sp.major).forEach(v=>{
-    if(v<min-1e-9||v>max+1e-9) return;
+    const pv=toPos(v); if(pv<min-1e-9||pv>max+1e-9) return;
     const x=X(v);
     if(marks.some(m=>Math.abs(X(m.v)-x)<32)) return;   // nao brigar com a marca didatica
     g+=`<text x="${x}" y="10" fill="${sp.tint?sp.tint(v):"#93a1ae"}" font-size="9.5" text-anchor="middle">${sp.fmt(v)}</text>`;
   });
   marks.forEach(m=>{const x=X(m.v);
     g+=`<line x1="${x}" y1="11" x2="${x}" y2="26" stroke="${m.color}" stroke-width="1.4"/>`
-      +`<text x="${(x+3).toFixed(1)}" y="9" fill="${m.color}" font-size="8" font-weight="700">${m.label}</text>`;});
+      +`<text x="${(x+3).toFixed(1)}" y="9" fill="${m.color}" font-size="8" font-weight="700" paint-order="stroke" stroke="#161d24" stroke-width="2.5" stroke-linejoin="round">${m.label}</text>`;});
   wrap.querySelector(".scale").innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${g}</svg>`;
   gaugeFill(inp);
 }
@@ -1186,6 +1231,16 @@ function initGauges(){
 // quando muda escala, agente, idade ou largura.
 document.addEventListener("input",e=>{
   const el=e.target; if(el&&el.classList&&el.classList.contains("gi")) gaugeFill(el);
+},true);
+document.addEventListener("keydown",e=>{
+  const el=e.target; if(!el||!el.classList||!el.classList.contains("gi")) return;
+  const sp=gaugeSpec(el.id); if(!sp||!sp.scale||!sp.scale.step) return;
+  const d = (e.key==="ArrowRight"||e.key==="ArrowUp") ? 1
+          : (e.key==="ArrowLeft" ||e.key==="ArrowDown") ? -1 : 0;
+  if(!d) return;
+  e.preventDefault();
+  el.value=sp.scale.toPos(sp.scale.step(sp.scale.fromPos(+el.value),d));
+  el.dispatchEvent(new Event("input",{bubbles:true}));
 },true);
 
 /* --- FASE DE DESPERTAR / ELIMINACAO ---------------------------------------
@@ -1243,7 +1298,7 @@ $("agentChips").addEventListener("click",e=>{const b=e.target.closest(".chip");i
 
 /* --- sliders --- */
 const SLIDERS=[
-  ["fgf","s-fgf","v-fgf",v=>nf(v,1)+" L/min"],
+  ["fgf","s-fgf","v-fgf",fgfFmt,FGFSCALE],
   ["dial","s-dial","v-dial",v=>nf(v,1)+" %"],
   ["n2o","s-n2o","v-n2o",v=>v?nf(v,0)+" %":t("off")],
   ["durationMin","s-dur","v-dur",v=>fmtT(v)],
@@ -1252,9 +1307,9 @@ const SLIDERS=[
   ["vaMult","s-va","v-va",v=>"×"+nf(v,2)+" ("+nf(4*Math.pow(S.weightKg/70,.75)*v,1)+" L/min)"],
   ["shunt","s-sh","v-sh",v=>nf(v,0)+" %"]
 ];
-SLIDERS.forEach(([key,sid,vid,fmt])=>{
+SLIDERS.forEach(([key,sid,vid,fmt,sc])=>{
   $(sid).addEventListener("input",e=>{
-    S[key]= key==="shunt"? +e.target.value : +e.target.value;
+    S[key]= sc ? sc.fromPos(+e.target.value) : +e.target.value;
     if(S.scn && (key==="fgf"||key==="dial"||key==="n2o")) { S.events=[]; S.scn=null; renderScn(); renderTeach(); }
     if(S.emg.on && !S.scn){ S.events=emgEvents(); if(key==="durationMin") syncEmg(); }
     $(vid).textContent=fmt(S[key]); run(); save();
@@ -1263,7 +1318,7 @@ SLIDERS.forEach(([key,sid,vid,fmt])=>{
 function sync(){
   const a=AGENTS[S.agentKey];
   $("s-dial").max=a.dialMax; $("l-dial").textContent=t("vap")+" — "+agName(a);
-  SLIDERS.forEach(([key,sid,vid,fmt])=>{ $(sid).value=S[key]; $(vid).textContent=fmt(S[key]); });
+  SLIDERS.forEach(([key,sid,vid,fmt,sc])=>{ $(sid).value=sc?sc.toPos(S[key]):S[key]; $(vid).textContent=fmt(S[key]); });
   $("s-sh").value=S.shunt*1; $("v-sh").textContent=nf(S.shunt,0)+" %";
   $("s-age").value=sliderFromAge(S.ageY); $("v-age").textContent=fmtAge(S.ageY);
   drawAllGauges();
@@ -1434,13 +1489,15 @@ function renderTeach(){
 const CMP={fgf:8,dur:60,co:1,mode:"fa"};
 ["cfgf","cdur","cco"].forEach((id,i)=>{
   const key=["fgf","dur","co"][i];
-  $("s-"+id).addEventListener("input",e=>{CMP[key]=+e.target.value; renderCmp();});
+  $("s-"+id).addEventListener("input",e=>{
+    CMP[key]= key==="fgf" ? fgfFromPos(+e.target.value) : +e.target.value; renderCmp();});
 });
 $("cmpmode").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
   CMP.mode=b.dataset.c; [...$("cmpmode").children].forEach(c=>c.classList.toggle("on",c===b)); renderCmp();});
 
 function renderCmp(){
-  $("v-cfgf").textContent=nf(CMP.fgf,1)+" L/min";
+  $("v-cfgf").textContent=fgfFmt(CMP.fgf);
+  if(document.activeElement!==$("s-cfgf")) $("s-cfgf").value=fgfToPos(CMP.fgf);
   $("v-cdur").textContent=fmtT(CMP.dur);
   $("v-cco").textContent="×"+nf(CMP.co,2);
   const wash=CMP.mode==="wash";
@@ -1710,8 +1767,8 @@ function lfRender(){
 function lfSync(){
   $("s-lfdial").max=AGENTS[LF.agent].dialMax;
   $("s-lfdial").value=LF.dial; $("v-lfdial").textContent=nf(LF.dial,1)+" %";
-  $("s-lfA").value=LF.fgfA; $("v-lfA").textContent=nf(LF.fgfA,2)+" L/min";
-  $("s-lfB").value=LF.fgfB; $("v-lfB").textContent=nf(LF.fgfB,2)+" L/min";
+  $("s-lfA").value=fgfToPos(LF.fgfA); $("v-lfA").textContent=fgfFmt(LF.fgfA);
+  $("s-lfB").value=fgfToPos(LF.fgfB); $("v-lfB").textContent=fgfFmt(LF.fgfB);
   $("s-lfwt").value=LF.weight; $("v-lfwt").textContent=LF.weight+" kg";
   $("s-lfvc").value=LF.vc; $("v-lfvc").textContent=nf(LF.vc,1)+" L";
   $("s-lfdur").value=LF.dur; $("v-lfdur").textContent=fmtT(LF.dur);
@@ -1727,12 +1784,13 @@ $("lfPreset").addEventListener("click",e=>{const b=e.target.closest(".chip");if(
   const p=PRESETS.find(x=>x.k===b.dataset.p); LF.weight=p.wt; LF.ageY=p.age; LF.vc=p.vc; LF.fgfA=p.a; LF.fgfB=p.b;
   lfChips(); lfSync(); LF.runs=null; LF.t=0; lfRender();});
 [["s-lfdial","dial","v-lfdial",v=>nf(v,1)+" %"],
- ["s-lfA","fgfA","v-lfA",v=>nf(v,2)+" L/min"],
- ["s-lfB","fgfB","v-lfB",v=>nf(v,2)+" L/min"],
+ ["s-lfA","fgfA","v-lfA",fgfFmt,FGFSCALE],
+ ["s-lfB","fgfB","v-lfB",fgfFmt,FGFSCALE],
  ["s-lfwt","weight","v-lfwt",v=>v+" kg"],
  ["s-lfvc","vc","v-lfvc",v=>nf(v,1)+" L"],
- ["s-lfdur","dur","v-lfdur",v=>fmtT(v)]].forEach(([id,key,vid,fmt])=>{
-  $(id).addEventListener("input",e=>{LF[key]=+e.target.value; $(vid).textContent=fmt(LF[key]);
+ ["s-lfdur","dur","v-lfdur",v=>fmtT(v)]].forEach(([id,key,vid,fmt,sc])=>{
+  $(id).addEventListener("input",e=>{LF[key]= sc?sc.fromPos(+e.target.value):+e.target.value;
+    $(vid).textContent=fmt(LF[key]);
     LF.runs=null; if(key==="dur")LF.t=0; lfChips(); lfRender();});
 });
 $("s-lfage").addEventListener("input",e=>{LF.ageY=ageFromSlider(+e.target.value);
