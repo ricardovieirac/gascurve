@@ -105,10 +105,16 @@ input[type=range]:disabled{opacity:.35}
    A regua e um SVG desenhado por drawGauge(); o mapeamento valor->x tem de
    repetir o do thumb nativo, que anda de NEEDLE/2 ate W-NEEDLE/2 — por isso a
    constante NEEDLE do JS e a largura do thumb aqui TEM de ser a mesma. */
-.gauge{position:relative}
+.gauge{position:relative;background:linear-gradient(180deg,#1b2229,#151b21);
+  border:1px solid #29333d;border-radius:9px;padding:7px 9px 3px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
 .gauge .scale{height:26px;line-height:0;pointer-events:none}
 .gauge .scale svg{display:block;overflow:visible}
-input[type=range].gi{--ic:var(--accent);--p:0px;height:30px}
+input[type=range].gi{--ic:var(--accent);--p:0px;height:30px;margin-top:-7px}
+/* o anel de foco branco do navegador estourava a placa; este acompanha a cor do
+   instrumento e so aparece na navegacao por teclado, sem perder acessibilidade */
+input[type=range].gi:focus{outline:none}
+input[type=range].gi:focus-visible{outline:2px solid var(--ic);outline-offset:2px;border-radius:5px}
 input[type=range].gi::-webkit-slider-runnable-track{height:7px;border-radius:3px;
   background:linear-gradient(90deg,var(--ic) var(--p),#0b1014 var(--p));
   box-shadow:inset 0 1px 2px rgba(0,0,0,.65),inset 0 0 0 1px var(--border)}
@@ -172,7 +178,7 @@ svg text{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;justify-content:space-between">
       <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
       <h1>GasCurve <span style="font-weight:400;color:var(--muted);font-size:15px">· cinética dos anestésicos inalatórios</span></h1>
-      <span class="badge">v3.11</span>
+      <span class="badge">v3.12</span>
       </div>
       <div class="seg" id="langSeg" style="flex:0 0 auto">
         <button data-l="pt">PT</button><button data-l="en">EN</button>
@@ -1085,6 +1091,7 @@ $("tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)re
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t===b));
   ["sim","lf","scn","cmp","ref"].forEach(k=>$("tab-"+k).classList.toggle("hide",k!==b.dataset.tab));
   lfApplyLayout();
+  drawAllGauges();   // abas escondidas tem largura 0 — so da para desenhar depois de exibir
   if(b.dataset.tab==="cmp") renderCmp(); if(b.dataset.tab==="ref") renderRef(); if(b.dataset.tab==="lf"){lfChips();lfSync();lfRender();}
 });
 
@@ -1096,15 +1103,15 @@ $("tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)re
    senao a regua desalinha do ponteiro — o thumb nativo anda de NEEDLE/2 ate
    W-NEEDLE/2, e e esse o mapeamento que X() reproduz. */
 const NEEDLE=16;
-const GAUGE_IDS=["s-fgf","s-dial","s-n2o","s-lfA","s-lfB","s-lfdial"];
+const GAUGE_IDS=["s-fgf","s-cfgf","s-dial","s-n2o","s-lfA","s-lfB","s-lfdial"];
 const G_BANDS=[  // baixo fluxo / minimo / metabolico (Baum; revisao do Ricardo)
-  {to:1,   fill:"rgba(120,200,255,.085)", label:"gLow"},
-  {to:0.5, fill:"rgba(120,200,255,.13)",  label:"gMinF"},
-  {to:0.35,fill:"rgba(120,200,255,.20)"}];
+  {to:1,   fill:"rgba(120,200,255,.11)", label:"gLow"},
+  {to:0.5, fill:"rgba(120,200,255,.17)", label:"gMinF"},
+  {to:0.35,fill:"rgba(120,200,255,.25)"}];
 const G_BANDTX="#8fb9d6";
 
 function gaugeSpec(id){
-  if(id==="s-fgf"||id==="s-lfA"||id==="s-lfB")
+  if(id==="s-fgf"||id==="s-cfgf"||id==="s-lfA"||id==="s-lfB")
     return {color: id==="s-lfA"?LFC.a : id==="s-lfB"?LFC.b : "#3fb84f",
             minor:0.5, major:[0.5,1,2,3,4,5,6,7,8,9,10], majorNarrow:[0.5,1,2,4,6,8,10],
             fmt:v=>nf(v,v<1?1:0),
@@ -1149,13 +1156,13 @@ function drawGauge(id){
   const first=Math.ceil((min-1e-9)/sp.minor)*sp.minor;
   for(let v=first;v<=max+1e-9;v=+(v+sp.minor).toFixed(6)){
     const maj=sp.major.some(m=>Math.abs(m-v)<1e-6), x=X(v);
-    g+=`<line x1="${x}" y1="${maj?13:17}" x2="${x}" y2="24" stroke="${maj?"#5a6b7c":"#2b3540"}" stroke-width="${maj?1.2:1}"/>`;
+    g+=`<line x1="${x}" y1="${maj?13:17}" x2="${x}" y2="24" stroke="${maj?"#7f8f9c":"#3f4c58"}" stroke-width="${maj?1.2:1}"/>`;
   }
   ((W<430&&sp.majorNarrow)?sp.majorNarrow:sp.major).forEach(v=>{
     if(v<min-1e-9||v>max+1e-9) return;
     const x=X(v);
     if(marks.some(m=>Math.abs(X(m.v)-x)<32)) return;   // nao brigar com a marca didatica
-    g+=`<text x="${x}" y="10" fill="${sp.tint?sp.tint(v):"var(--muted)"}" font-size="9.5" text-anchor="middle">${sp.fmt(v)}</text>`;
+    g+=`<text x="${x}" y="10" fill="${sp.tint?sp.tint(v):"#93a1ae"}" font-size="9.5" text-anchor="middle">${sp.fmt(v)}</text>`;
   });
   marks.forEach(m=>{const x=X(m.v);
     g+=`<line x1="${x}" y1="11" x2="${x}" y2="26" stroke="${m.color}" stroke-width="1.4"/>`
